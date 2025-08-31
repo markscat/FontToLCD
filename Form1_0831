@@ -41,15 +41,16 @@ namespace FontToLCD
 
             string text = Imput.Text;
             string fontName = FontType.SelectedItem?.ToString() ?? "Arial";
-            //int fontSize = int.TryParse(FontSize.SelectedItem?.ToString(), out int fs) ? fs : 16;
-            float fontSize = float.TryParse(FontSize.SelectedItem?.ToString(), out float fs) ? fs : 16;
+            int fontSize = int.TryParse(FontSize.SelectedItem?.ToString(), out int fs) ? fs : 16;
 
+            // 這裡先用輸出的大小決定矩陣大小 (例: 8 → 8x16, 16 → 16x16, 32 → 32x32)
+            int bmpWidth = fontSize;
+
+            int bmpHeight = (fontSize <= 8) ? fontSize : fontSize * 2; // 小字用 1:1，大字用 1:2 比例
 
             // 畫字
-            using (Bitmap bmp = DrawCharToBitmap(text.Substring(0, 1), fontName, fontSize))
-//
-            //using (Bitmap bmp = DrawCharToBitmap(text, fontName, fontSize, ))          
-            //
+            using (Bitmap bmp = DrawCharToBitmap(text, fontName, fontSize, bmpWidth, bmpHeight))          
+            
             {
                 // 轉矩陣
                 int[,] matrix = BitmapToMatrix(bmp);
@@ -62,127 +63,61 @@ namespace FontToLCD
             }
         }
 
-        private Bitmap DrawCharToBitmap(string text, string fontName, float fontSize)
+        private Bitmap DrawCharToBitmap(string text, string fontName, float fontSize, int targetWidth, int targetHeight)
         {
-            // 步驟 1: 先用 MeasureString 產生一個「夠大」的、包含空白的初始點陣圖
-            Bitmap initialBmp;
-            using (Font font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Point))
+            // 步驟 1: 在一個臨時的大畫布上繪製字元
+            // 這個畫布的大小要足夠大，以確保任何大小的字體都能完整繪製，且有足夠的解析度。
+            int tempCanvasSize = 256;
+            using (Bitmap tempBmp = new Bitmap(tempCanvasSize, tempCanvasSize))
             {
-                using (Bitmap tempBmp = new Bitmap(1, 1))
                 using (Graphics g = Graphics.FromImage(tempBmp))
                 {
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
-                    SizeF size = g.MeasureString(text, font);
-                    int bmpWidth = (int)Math.Ceiling(size.Width);
-                    int bmpHeight = (int)Math.Ceiling(size.Height);
+                    g.Clear(Color.White);
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
-                    if (bmpWidth <= 0 || bmpHeight <= 0) return new Bitmap(1, 1);
-
-                    // 建立初始點陣圖
-                    initialBmp = new Bitmap(bmpWidth, bmpHeight);
-                    using (Graphics initialG = Graphics.FromImage(initialBmp))
+                    // 使用一個相對較大的字體進行繪製
+                    using (Font font = new Font(fontName, tempCanvasSize / 2f, FontStyle.Regular, GraphicsUnit.Pixel))
                     {
-                        initialG.Clear(Color.White);
-                        initialG.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
-                        initialG.DrawString(text, font, Brushes.Black, 0, 0);
+                        StringFormat sf = new StringFormat
+                        {
+                            Alignment = StringAlignment.Center,
+                            LineAlignment = StringAlignment.Center
+                        };
+                        g.DrawString(text, font, Brushes.Black, new RectangleF(0, 0, tempCanvasSize, tempCanvasSize), sf);
                     }
                 }
+
+                // 步驟 2: 掃描畫布，找出字元筆劃的實際視覺邊界
+                RectangleF bounds = FindVisualBoundingBox(tempBmp);
+
+                // 如果找不到任何筆劃 (例如輸入是空白字元)，就返回一個全白的目標大小圖片
+                if (bounds.IsEmpty || bounds.Width <= 0 || bounds.Height <= 0)
+                {
+                    Bitmap emptyBmp = new Bitmap(targetWidth, targetHeight);
+                    using (Graphics g = Graphics.FromImage(emptyBmp))
+                    {
+                        g.Clear(Color.White);
+                    }
+                    return emptyBmp;
+                }
+
+                // 步驟 3: 根據邊界裁剪出最緊湊的字元，並縮放到目標大小
+                Bitmap finalBmp = new Bitmap(targetWidth, targetHeight);
+                using (Graphics g = Graphics.FromImage(finalBmp))
+                {
+                    g.Clear(Color.White);
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                    // 將 tempBmp 中 bounds 區域的圖像，繪製(並縮放)到 finalBmp 的整個畫布上
+                    g.DrawImage(tempBmp,
+                                new Rectangle(0, 0, targetWidth, targetHeight), // 目標矩形 (填滿)
+                                bounds, // 來源矩形 (從大圖中裁剪的區域)
+                                GraphicsUnit.Pixel);
+                }
+
+                return finalBmp;
             }
-
-            // 步驟 2: 掃描這個初始點陣圖，找出字元筆劃的「真正」視覺邊界
-            // 這裡我們直接使用您程式中已有的 FindVisualBoundingBox 方法，但需要做一點修改
-            // 因為我們是黑白圖，所以判斷條件要改
-            Rectangle visualBounds = FindVisualBoundingBox_For_BlackAndWhite(initialBmp);
-
-            if (visualBounds.IsEmpty || visualBounds.Width <= 0 || visualBounds.Height <= 0)
-            {
-                initialBmp.Dispose();
-                return new Bitmap(1, 1); // 如果是空白字元，返回一個小圖
-            }
-
-            // 步驟 3: 根據精確的視覺邊界，裁剪出最終的點陣圖
-            Bitmap finalBmp = new Bitmap(visualBounds.Width, visualBounds.Height);
-            using (Graphics g = Graphics.FromImage(finalBmp))
-            {
-                g.Clear(Color.White);
-                // DrawImage 可以用來執行裁剪：
-                // 將 initialBmp 中 visualBounds 區域的內容，畫到 finalBmp 的 (0,0) 位置
-                g.DrawImage(initialBmp,
-                            new Rectangle(0, 0, finalBmp.Width, finalBmp.Height), // 目標矩形
-                            visualBounds, // 來源矩形
-                            GraphicsUnit.Pixel);
-            }
-
-            initialBmp.Dispose(); // 釋放中介圖片的資源
-            return finalBmp;
         }
-
-        // 這是針對黑白點陣圖優化的 FindVisualBoundingBox
-        private Rectangle FindVisualBoundingBox_For_BlackAndWhite(Bitmap bmp)
-        {
-            int top = -1, bottom = -1, left = -1, right = -1;
-
-            // 從上到下
-            for (int y = 0; y < bmp.Height; y++)
-            {
-                for (int x = 0; x < bmp.Width; x++)
-                {
-                    if (bmp.GetPixel(x, y).R == 0) // 黑色
-                    {
-                        top = y;
-                        goto FoundTop;
-                    }
-                }
-            }
-        FoundTop:
-            if (top == -1) return Rectangle.Empty; // 全白
-
-            // 從下到上
-            for (int y = bmp.Height - 1; y >= 0; y--)
-            {
-                for (int x = 0; x < bmp.Width; x++)
-                {
-                    if (bmp.GetPixel(x, y).R == 0)
-                    {
-                        bottom = y;
-                        goto FoundBottom;
-                    }
-                }
-            }
-        FoundBottom:
-
-            // 從左到右
-            for (int x = 0; x < bmp.Width; x++)
-            {
-                for (int y = top; y <= bottom; y++)
-                {
-                    if (bmp.GetPixel(x, y).R == 0)
-                    {
-                        left = x;
-                        goto FoundLeft;
-                    }
-                }
-            }
-        FoundLeft:
-
-            // 從右到左
-            for (int x = bmp.Width - 1; x >= 0; x--)
-            {
-                for (int y = top; y <= bottom; y++)
-                {
-                    if (bmp.GetPixel(x, y).R == 0)
-                    {
-                        right = x;
-                        goto FoundRight;
-                    }
-                }
-            }
-        FoundRight:
-
-            return new Rectangle(left, top, right - left + 1, bottom - top + 1);
-        }
-
-
 
         /// <summary>
         /// 掃描 Bitmap，找出非白色像素構成的最小邊界矩形。
@@ -258,88 +193,6 @@ namespace FontToLCD
             bottom = Math.Min(bmp.Height - 1, bottom + padding);
 
             return new RectangleF(left, top, right - left + 1, bottom - top + 1);
-        }
-
-
-        // Bitmap 轉矩陣，灰階判斷
-        private int[,] BitmapToMatrix(Bitmap bmp)
-        {
-            int[,] matrix = new int[bmp.Height, bmp.Width];
-            for (int y = 0; y < bmp.Height; y++)
-            {
-                for (int x = 0; x < bmp.Width; x++)
-                {
-                    Color p = bmp.GetPixel(x, y);
-                    int gray = (int)(0.3 * p.R + 0.59 * p.G + 0.11 * p.B);
-                    matrix[y, x] = gray < 128 ? 1 : 0; // 黑色=1
-                }
-            }
-            return matrix;
-        }
-
-        private Bitmap DrawMatrixPreview(int[,] matrix, int scale = 20)
-        {
-            int rows = matrix.GetLength(0);
-            int cols = matrix.GetLength(1);
-            Bitmap bmp = new Bitmap(cols * scale, rows * scale);
-
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                g.Clear(Color.White);
-
-                for (int y = 0; y < rows; y++)
-                {
-                    for (int x = 0; x < cols; x++)
-                    {
-                        Rectangle rect = new Rectangle(x * scale, y * scale, scale, scale);
-                        if (matrix[y, x] == 1)
-                        {
-                            g.FillRectangle(Brushes.Black, rect);
-                        }
-                        g.DrawRectangle(Pens.Gray, rect); // 畫格子線
-                    }
-                }
-            }
-            return bmp;
-        }
-        
-        private string MatrixToHexString(int[,] matrix)
-        {
-            StringBuilder sb = new StringBuilder();
-            int rows = matrix.GetLength(0);
-            int cols = matrix.GetLength(1);
-
-            sb.AppendLine("{");
-            for (int y = 0; y < rows; y++)
-            {
-                sb.Append("  ");
-                int value = 0;
-                int bitCount = 0;
-
-                for (int x = 0; x < cols; x++)
-                {
-                    value = (value << 1) | matrix[y, x];
-                    bitCount++;
-
-                    if (bitCount == 8)
-                    {
-                        sb.Append($"0x{value:X2}, ");
-                        value = 0;
-                        bitCount = 0;
-                    }
-                }
-
-                // 如果寬度不是8的倍數，補齊最後一個 byte
-                if (bitCount > 0)
-                {
-                    value <<= (8 - bitCount);
-                    sb.Append($"0x{value:X2}, ");
-                }
-
-                sb.AppendLine();
-            }
-            sb.AppendLine("};");
-            return sb.ToString();
         }
 
         //#define code0829
@@ -444,6 +297,88 @@ namespace FontToLCD
             return smallBmp;
         }
 #endif
+
+        // Bitmap 轉矩陣，灰階判斷
+        private int[,] BitmapToMatrix(Bitmap bmp)
+        {
+            int[,] matrix = new int[bmp.Height, bmp.Width];
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    Color p = bmp.GetPixel(x, y);
+                    int gray = (int)(0.3 * p.R + 0.59 * p.G + 0.11 * p.B);
+                    matrix[y, x] = gray < 128 ? 1 : 0; // 黑色=1
+                }
+            }
+            return matrix;
+        }
+
+        private Bitmap DrawMatrixPreview(int[,] matrix, int scale = 20)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+            Bitmap bmp = new Bitmap(cols * scale, rows * scale);
+
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.White);
+
+                for (int y = 0; y < rows; y++)
+                {
+                    for (int x = 0; x < cols; x++)
+                    {
+                        Rectangle rect = new Rectangle(x * scale, y * scale, scale, scale);
+                        if (matrix[y, x] == 1)
+                        {
+                            g.FillRectangle(Brushes.Black, rect);
+                        }
+                        g.DrawRectangle(Pens.Gray, rect); // 畫格子線
+                    }
+                }
+            }
+            return bmp;
+        }
+        
+        private string MatrixToHexString(int[,] matrix)
+        {
+            StringBuilder sb = new StringBuilder();
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            sb.AppendLine("{");
+            for (int y = 0; y < rows; y++)
+            {
+                sb.Append("  ");
+                int value = 0;
+                int bitCount = 0;
+
+                for (int x = 0; x < cols; x++)
+                {
+                    value = (value << 1) | matrix[y, x];
+                    bitCount++;
+
+                    if (bitCount == 8)
+                    {
+                        sb.Append($"0x{value:X2}, ");
+                        value = 0;
+                        bitCount = 0;
+                    }
+                }
+
+                // 如果寬度不是8的倍數，補齊最後一個 byte
+                if (bitCount > 0)
+                {
+                    value <<= (8 - bitCount);
+                    sb.Append($"0x{value:X2}, ");
+                }
+
+                sb.AppendLine();
+            }
+            sb.AppendLine("};");
+            return sb.ToString();
+        }
+
 
         /*
             private void Button1_Click(object? sender, EventArgs e){
@@ -607,66 +542,6 @@ namespace FontToLCD
             return bmp;
         }
 
-        */
-
-
-
-        /*
-        private Bitmap DrawCharToBitmap(string text, string fontName, float fontSize, int targetWidth, int targetHeight)
-        {
-            // 步驟 1: 在一個臨時的大畫布上繪製字元
-            // 這個畫布的大小要足夠大，以確保任何大小的字體都能完整繪製，且有足夠的解析度。
-            int tempCanvasSize = 256;
-            using (Bitmap tempBmp = new Bitmap(tempCanvasSize, tempCanvasSize))
-            {
-                using (Graphics g = Graphics.FromImage(tempBmp))
-                {
-                    g.Clear(Color.White);
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-
-                    // 使用一個相對較大的字體進行繪製
-                    using (Font font = new Font(fontName, tempCanvasSize / 2f, FontStyle.Regular, GraphicsUnit.Pixel))
-                    {
-                        StringFormat sf = new StringFormat
-                        {
-                            Alignment = StringAlignment.Center,
-                            LineAlignment = StringAlignment.Center
-                        };
-                        g.DrawString(text, font, Brushes.Black, new RectangleF(0, 0, tempCanvasSize, tempCanvasSize), sf);
-                    }
-                }
-
-                // 步驟 2: 掃描畫布，找出字元筆劃的實際視覺邊界
-                RectangleF bounds = FindVisualBoundingBox(tempBmp);
-
-                // 如果找不到任何筆劃 (例如輸入是空白字元)，就返回一個全白的目標大小圖片
-                if (bounds.IsEmpty || bounds.Width <= 0 || bounds.Height <= 0)
-                {
-                    Bitmap emptyBmp = new Bitmap(targetWidth, targetHeight);
-                    using (Graphics g = Graphics.FromImage(emptyBmp))
-                    {
-                        g.Clear(Color.White);
-                    }
-                    return emptyBmp;
-                }
-
-                // 步驟 3: 根據邊界裁剪出最緊湊的字元，並縮放到目標大小
-                Bitmap finalBmp = new Bitmap(targetWidth, targetHeight);
-                using (Graphics g = Graphics.FromImage(finalBmp))
-                {
-                    g.Clear(Color.White);
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-
-                    // 將 tempBmp 中 bounds 區域的圖像，繪製(並縮放)到 finalBmp 的整個畫布上
-                    g.DrawImage(tempBmp,
-                                new Rectangle(0, 0, targetWidth, targetHeight), // 目標矩形 (填滿)
-                                bounds, // 來源矩形 (從大圖中裁剪的區域)
-                                GraphicsUnit.Pixel);
-                }
-
-                return finalBmp;
-            }
-        }
         */
     }
 }
