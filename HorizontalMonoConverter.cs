@@ -1,6 +1,6 @@
 ﻿// HorizontalMonoConverter.cs
-using System.Text; // 需要 StringBuilder
 using System.Drawing; // 需要 Color
+using System.Text; // 需要 StringBuilder
 namespace FontToLCD
 {
     public class HorizontalMonoConverter : IScreenConverter
@@ -34,7 +34,11 @@ namespace FontToLCD
             int rows = matrix.GetLength(0);// 獲取矩陣的高度 (總共有幾行)
             int cols = matrix.GetLength(1);// 獲取矩陣的寬度 (總共有幾欄)
 
-            sb.AppendLine("{");
+            string dataType = "const uint8_t";
+            string arrayName = $"myChar_{cols}x{rows}";
+            int arraySize = (cols + 7) / 8 * rows;
+            sb.AppendLine($"// Bitmap Font Data for a {cols}x{rows} character");
+            sb.AppendLine($"{dataType} {arrayName}[{arraySize}] = {{"); // <-- 修改過的開頭
 
             // --- 外層迴圈：逐行處理 ---
             // 這個迴圈從第一行 (y=0) 開始，一直處理到最後一行。

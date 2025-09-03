@@ -21,6 +21,8 @@ namespace FontToLCD
         /// 
         public string Convert(int[,] matrix, Color foregroundColor, Color backgroundColor)
         {
+
+
             // --- 步驟 1: 顏色格式轉換 ---
             // ILI9225 等 TFT 螢幕通常使用 RGB565 格式，每個像素用 16 位元 (2 個位元組) 表示顏色。
             // C# 的 Color 物件是 24 位元 (RGB888)，所以需要進行轉換。
@@ -40,8 +42,14 @@ namespace FontToLCD
 
             int rows = matrix.GetLength(0);
             int cols = matrix.GetLength(1);
+
             // 陣列的開頭
-            sb.AppendLine("{");
+            string dataType = "const uint8_t";
+            string arrayName = $"myChar_{cols}x{rows}";
+            int arraySize = (cols + 7) / 8 * rows;
+            sb.AppendLine($"// Bitmap Font Data for a {cols}x{rows} character");
+            sb.AppendLine($"{dataType} {arrayName}[{arraySize}] = {{"); // <-- 修改過的開頭
+
             // --- 步驟 2: 遍歷矩陣並產生 HEX 字串 ---
             // 外層迴圈：逐行處理 (y 座標)，這對應了「水平掃描」模式。
             for (int y = 0; y < rows; y++)
