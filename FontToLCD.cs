@@ -1,38 +1,67 @@
 
-using System.Text;
-using System.Windows.Forms;
 using System;
 using System.Drawing;
+using System.Text;
+using System.Text.Json;
+using System.Windows.Forms;
 //using System.Text;
 using System.Windows.Forms;
+using System.Xml.Linq;
+
 
 namespace FontToLCD
     {
-        public partial class FontToLCD : Form
+    public partial class FontToLCD : Form
+    {
+
+        /// <summary>
+        /// 用於儲存「字型設計」分頁中，使用者正在編輯的點陣矩陣。
+        /// </summary>
+        private int[,]? _dotDesignMatrix;
+
+        // (可選) 將繪圖的縮放比例也設為變數，方便統一修改
+        private int _designPixelScale = 20;
+
+        // 存最後一次生成的矩陣
+        private int[,]? _lastGeneratedMatrix; // 新增：用於儲存 Button1_Click 生成的矩陣
+
+
+
+
+        public FontToLCD()
         {
-            public FontToLCD()
-            {
-                InitializeComponent();
-                InitForm();
-            }
+            InitializeComponent();
+            InitForm();
 
-            private void InitForm()
-            {
-                // 初始化字型 ComboBox
-                foreach (FontFamily ff in FontFamily.Families)
+
+            // 手動綁定按鈕事件（如果設計師文件中沒有）
+            SafeFontArray.Click += SafeFontArray_Click;
+
+            SafeCreateFont.Click += SafeCreateFont_Click;
+
+
+            DesignCanvas.MouseClick += DesignCanvas_MouseClick;
+            CreateGridButton.Click += CreateGridButton_Click;
+            GenerateHexButton.Click += GenerateHexButton_Click;
+
+        }
+
+        private void InitForm()
+        {
+            // 初始化字型 ComboBox
+            foreach (FontFamily ff in FontFamily.Families)
                 FontType.Items.Add(ff.Name);
-                FontType.SelectedIndex = 0;
+            FontType.SelectedIndex = 0;
 
-                // 初始化大小 ComboBox
-            //    LedFont.Items.AddRange(new object[] { "8", "16", "32" });
-            //    LedFont.SelectedIndex = 0; // 預設 8
-                FontSize.Items.AddRange(new object[] { "8", "12", "16", "24", "32" });
-                FontSize.SelectedIndex = 0;
+            // 初始化大小 
+            // 預設 8
+            FontSize.Items.AddRange(new object[] { "8", "12", "16", "24", "32" });
+            FontSize.SelectedIndex = 0;
             // 按鈕事件
-                button1.Click += Button1_Click;
+            button1.Click += Button1_Click;
 
             // 預設文字
-                Imput.Text = "a";
+            Imput.Text = "a";
             // 初始化目標螢幕類型 ComboBox
             HEX_Type.Items.AddRange(new object[] {
                 "通用水平掃描 (單色)",
@@ -40,6 +69,17 @@ namespace FontToLCD
                 "TFT ILI9225 (彩色 RGB565)"
             });
             HEX_Type.SelectedIndex = 0; // 預設選擇第一個選項
+
+            //
+            Design_HEX_Type.Items.AddRange(new object[] {
+                "通用水平掃描(單色)",
+                "OLED SH1106/SSD1306(垂直)",
+                "TFT ILI9225(彩色 RGB565)"
+            });
+            Design_HEX_Type.SelectedIndex = 1; // 預設選擇第一個選項
+
+            
+
         }
 
         private void Button1_Click(object? sender, EventArgs e)
@@ -59,7 +99,7 @@ namespace FontToLCD
             {
                 // 轉矩陣
                 matrix = BitmapToMatrix(bmp);
-
+                _lastGeneratedMatrix = matrix;
 
                 // --- 步驟 2: 根據 ComboBox 的選擇，建立對應的轉換器 ---
                 // 這就是「工廠模式」的簡單實現，根據訂單（使用者選擇）生產對應的工具。
@@ -265,213 +305,299 @@ namespace FontToLCD
             return bmp;
         }
 
+
+        //
         /// <summary>
-        /// 將矩陣轉換為適用於 SH1106/SSD1306 (垂直掃描) 的 HEX 字串。
+        /// 一個輔助函式，負責根據 _dotDesignMatrix 的當前狀態，更新畫布和 HEX 輸出。
         /// </summary>
-        private string MatrixToHexString_For_SH1106(int[,] matrix)
+        /// <summary>
+        /// (修改後) 只負責根據 _dotDesignMatrix 的當前狀態，更新畫布。
+        /// </summary>
+        private void RedrawCanvas()
         {
-            StringBuilder sb = new StringBuilder();
+            if (_dotDesignMatrix == null) return;
+            DesignCanvas.Image = DrawMatrixPreview(_dotDesignMatrix, _designPixelScale);
+        }
+
+
+        /// <summary>
+        /// 一個輔助函式，負責根據 _dotDesignMatrix 的當前狀態，更新畫布和 HEX 輸出。
+        /// </summary>
+        private void UpdateHexOutput()
+        {
+
+            if (_dotDesignMatrix == null)
+            {
+                DesignHexOutput.Text = "請先點擊「新建/清除畫布」來開始設計。";
+                return;
+            }
+
+            // --- 2. 更新右邊的 HEX 輸出 (共用整個轉換器架構) ---
+            // 這段邏輯和您第一個分頁的 button1_Click 中的轉換邏輯完全一樣！
+            IScreenConverter? converter = null;
+
+            string selectedScreen = Design_HEX_Type.SelectedItem?.ToString() ?? "";
+
+
+            //Design_HEX_Type.Items.AddRange(new object[] {
+            //    "通用水平掃描(單色)",
+            //    "OLED SH1106/SSD1306(垂直)",
+            //    "TFT ILI9225(彩色 RGB565)"
+            //});
+
+            switch (selectedScreen)
+            {
+                case "通用水平掃描(單色)":
+                    converter = new HorizontalMonoConverter();
+                    break;
+                case "OLED SH1106/SSD1306(垂直)": // 修正名稱
+
+                    converter = new Sh1106Converter();
+                    break;
+                case "TFT ILI9225(彩色 RGB565)":
+
+                    converter = new Ili9225Converter();
+                    break;
+                default:
+                    DesignHexOutput.Text = "請在第一個分頁選擇有效的 HEX 輸出類型。";
+                    return;
+            }
+
+            // 對於點陣設計，前景是黑，背景是白
+            Color foregroundColor = Color.Black;
+            Color backgroundColor = Color.White;
+
+            // 呼叫轉換器，得到 HEX 字串
+            DesignHexOutput.Text = converter.Convert(_dotDesignMatrix, foregroundColor, backgroundColor);
+        }
+
+
+        private void CreateGridButton_Click(object? sender, EventArgs e)
+        {
+            // 1. 從 NumericUpDown 控制項讀取使用者想要的尺寸
+            //    (請確保您在設計師中，已經將這兩個控制項命名為 GridWidthNumeric 和 GridHeightNumeric)
+            int width = (int)GridWidthNumeric.Value;
+            int height = (int)GridHeightNumeric.Value;
+
+            // 2. 邊界檢查 (可選但推薦)，防止使用者輸入 0 或過大的值
+            if (width <= 0 || height <= 0)
+            {
+                MessageBox.Show("畫布寬度和高度必須大於 0！");
+                return;
+            }
+
+            //
+            //
+            //3. 根據讀取到的尺寸，建立一個全新的、全為 0 的二維陣列
+            //    這會覆蓋掉舊的 _dotDesignMatrix
+            _dotDesignMatrix = new int[height, width];
+
+            // 4. 呼叫輔助函式來重繪空白畫布並更新 HEX
+            RedrawCanvas();   // 這會畫出一個空白的網格
+            UpdateHexOutput(); // 這會顯示一堆 0x00
+        }
+
+
+        private void DesignCanvas_MouseClick(object? sender, MouseEventArgs e)
+        {
+            if (_dotDesignMatrix == null) return;
+
+            // 1. 獲取當前矩陣的尺寸。
+            //    _dotDesignMatrix.GetLength(0) 獲取第一個維度的大小 (高度/行數)。
+            //    _dotDesignMatrix.GetLength(1) 獲取第二個維度的大小 (寬度/欄數)。
+            int height = _dotDesignMatrix.GetLength(0);
+            int width = _dotDesignMatrix.GetLength(1);
+
+            // 2. 將滑鼠的點擊座標 (e.X, e.Y) 轉換為矩陣的索引 (gridX, gridY)。
+            //    _designPixelScale 是您之前定義的、每個像素格子放大的倍率 (例如 20)。
+            int gridX = e.X / _designPixelScale;
+            int gridY = e.Y / _designPixelScale;
+
+            if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height)
+
+            {
+                _dotDesignMatrix[gridY, gridX] = 1 - _dotDesignMatrix[gridY, gridX];
+                RedrawCanvas(); // 只重繪畫布，不再更新 HEX
+            }
+        }
+
+        private void GenerateHexButton_Click(object? sender, EventArgs e)
+        {
+            UpdateHexOutput(); // 只更新 HEX
+        }
+
+        private void SafeFontArray_Click(object? sender, EventArgs e)
+        {
+            MessageBox.Show("SafeFontArray 按鈕被點擊了！", "測試", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            if (_lastGeneratedMatrix == null || _lastGeneratedMatrix.Length == 0 || string.IsNullOrWhiteSpace(Hex.Text))
+            {
+                MessageBox.Show("「字元轉換」分頁沒有可供儲存的數據，請先點擊「轉換」按鈕。", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string character = Imput.Text.Length > 0 ? Imput.Text.Substring(0, 1) : "無字元";
+
+            //string character = Imput.Text.Substring(0, 1);
+            string fontName = FontType.SelectedItem?.ToString() ?? "Arial";
+            float fontSize = float.TryParse(FontSize.SelectedItem?.ToString(), out float fs) ? fs : 16;
+            string hexText = Hex.Text;
+
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "字型數據文件 (*.h)|*.h|所有文件 (*.*)|*.*";
+                sfd.Title = "儲存字元轉換數據";
+                sfd.FileName = $"Char_{character}_Font_{fontName}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}";
+
+                SaveHexAndJson(_lastGeneratedMatrix, character, fontName, fontSize, hexText);
+
+            }
+        }
+
+        private void SafeCreateFont_Click(object? sender, EventArgs e)
+        {
+
+            MessageBox.Show("SafeFontArray 按鈕被點擊了！", "測試", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            if (_dotDesignMatrix == null)
+            {
+                MessageBox.Show("請先在「字型設計」分頁創建網格", "儲存失敗", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            //int[,] matrix = BitmapToMatrixFromDesignCanvas(); // 你的 DesignCanvas 對應矩陣
+            string character = "Custom";
+            string fontName = "CustomDesign";
+            float fontSize = 0;
+            string hexText = DesignHexOutput.Text;
+
+            SaveHexAndJson(_dotDesignMatrix, character, fontName, fontSize, hexText);
+        }
+
+
+
+        /// <summary>
+        /// 實際執行儲存 .h 和 .json 檔案的邏輯。
+        /// </summary>
+        /// <param name="matrix">要儲存的點陣矩陣。</param>
+        /// <param name="character">字元描述。</param>
+        /// <param name="fontName">字型名稱。</param>
+        /// <param name="fontSize">字型大小。</param>
+        /// <param name="hexText">HEX 字串。</param>
+        /// <param name="baseFilePath">不含副檔名的完整檔案路徑 (例如: C:\MyFonts\Font_20231027_103000)。</param>
+        ///
+
+        private void SaveHexAndJson(int[,] matrix, string character, string fontName, float fontSize, string hexText)
+        {
+            if (matrix == null || matrix.Length == 0 || string.IsNullOrWhiteSpace(hexText))
+            {
+                MessageBox.Show("資料不完整，無法存檔！");
+                return;
+            }
+
+            try
+            {
+                // 確認 Font 資料夾存在
+                string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Font");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                // 用時間當檔名
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string baseFileName = $"Font_{timestamp}";
+
+                // 儲存 .h 檔
+                string hexFilePath = Path.Combine(folderPath, $"{baseFileName}.h");
+                File.WriteAllText(hexFilePath, hexText, Encoding.UTF8);
+
+                // 準備 JSON 數據
+                var fontData = new
+                {
+                    Character = character,
+                    FontName = fontName,
+                    FontSize = fontSize,
+                    MatrixWidth = matrix.GetLength(1),
+                    MatrixHeight = matrix.GetLength(0),
+                    MatrixData = ConvertMatrixToStringArray(matrix), // 將二維陣列轉為字串陣列
+                    CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+
+                // 儲存 .json 檔
+                string json = JsonSerializer.Serialize(fontData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
+
+                string jsonFilePath = Path.Combine(folderPath, $"{baseFileName}.json");
+                File.WriteAllText(jsonFilePath, json, Encoding.UTF8);
+
+                MessageBox.Show($"已成功存檔！\n.h 檔: {hexFilePath}\n.json 檔: {jsonFilePath}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"存檔失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // 輔助方法：將二維陣列轉換為字串陣列（方便 JSON 儲存）
+        private string[] ConvertMatrixToStringArray(int[,] matrix)
+        {
             int rows = matrix.GetLength(0);
             int cols = matrix.GetLength(1);
+            string[] result = new string[rows];
 
-            // 計算總共需要多少頁 (每頁8行高)
-            int numPages = (rows + 7) / 8;
-
-            sb.AppendLine("{");
-            sb.Append("  ");
-
-            // 外層迴圈遍歷「頁」
-            for (int p = 0; p < numPages; p++)
-            {
-                // 內層迴圈遍歷「欄」(水平方向)
-                for (int x = 0; x < cols; x++)
-                {
-                    int value = 0;
-                    // 這個迴圈為當前的 (頁, 欄) 組合建立一個 byte
-                    // 我們需要從該頁的底部到頂部讀取，以便使用簡單的左移操作
-                    // 或者從頂部到底部讀取，並使用 | 操作符
-                    for (int bit = 0; bit < 8; bit++)
-                    {
-                        int y = (p * 8) + bit; // 計算實際的 y 座標
-
-                        // 檢查是否超出陣列邊界 (對於高度不是8倍數的字體)
-                        if (y < rows)
-                        {
-                            if (matrix[y, x] == 1)
-                            {
-                                // 最上面的像素 (bit=0) 是 LSB (D0)
-                                // 所以我們將 1 左移 bit 位
-                                value |= (1 << bit);
-                            }
-                        }
-                    }
-                    sb.Append($"0x{value:X2}, ");
-                }
-                sb.AppendLine($" // Page {p}"); // 為每頁資料加上註解，方便閱讀
-            }
-
-            sb.AppendLine("};");
-            return sb.ToString();
-        }
-
-
-        /// <summary>
-        /// 將 0/1 的二維矩陣轉換為 C/C++ 風格的十六進位陣列字串。
-        /// 這種格式適用於「水平掃描」或「行主序 (Row-Major)」的顯示器。
-        /// </summary>
-        /// <param name="matrix">包含 0 和 1 的二維整數陣列，代表像素點陣。</param>
-        /// <returns>格式化後的十六進位陣列字串。</returns>
-        /// <remarks>
-        /// --- 格式規格 ---
-        /// 1. 掃描方向：由上到下 (Row by Row)，由左到右 (Pixel by Pixel)。
-        /// 2. 像素打包：每 8 個像素打包成一個位元組 (Byte)。
-        /// 3. 位元順序 (Bit Order)：【重要】一行中，最左邊的像素是最高有效位 (MSB-First)。
-        ///    例如，像素序列 [1,0,0,0,0,0,0,0] 會被轉換成 0b10000000，也就是 0x80。
-        /// 4. 結尾處理：如果一行像素的寬度不是 8 的倍數，最後一個位元組的剩餘位元將會向左對齊，右邊補 0。
-        ///    例如，一行有 10 個像素，前 8 個打包成一個 Byte，後 2 個會打包成 `[P8, P9, 0, 0, 0, 0, 0, 0]`。
-        /// 
-        /// --- 如何修改 ---
-        /// - 若要改為「垂直掃描」(適用於 SH1106/SSD1306)，需要將內外兩層 for 迴圈的 y 和 x 對調，並重新設計位元打包邏輯。
-        /// - 若要改為「最低有效位在前 (LSB-First)」，需要修改位元打包的公式，
-        /// 例如改為 `value = value | (matrix[y, x] << bitCount);` 並在打包滿 8 位時反轉位元順序，或直接從右向左累加。
-        /// </remarks>
-        /// 
-        private string MatrixToHexString(int[,] matrix)
-        {
-            StringBuilder sb = new StringBuilder();
-            int rows = matrix.GetLength(0);// 獲取矩陣的高度 (總共有幾行)
-            int cols = matrix.GetLength(1);// 獲取矩陣的寬度 (總共有幾欄)
-
-            sb.AppendLine("{");
-
-
-            // --- 外層迴圈：逐行處理 ---
-            // 這個迴圈從第一行 (y=0) 開始，一直處理到最後一行。
             for (int y = 0; y < rows; y++)
             {
-                sb.Append("  ");    // 在每一行的開頭加上縮排，使格式更美觀
-                int value = 0;      // 用於儲存當前正在打包的 8 位元位元組的值
-                int bitCount = 0;   // 計數器，計算當前位元組已經打包了幾個位元
-
-
-                // --- 內層迴圈：處理一行中的每一個像素 ---
-                // 這個迴圈從最左邊的像素 (x=0) 開始，處理到最右邊。
+                StringBuilder rowBuilder = new StringBuilder();
                 for (int x = 0; x < cols; x++)
                 {
-                    // --- 核心位元打包邏輯 (MSB-First) ---
-                    // 1. `(Value << 1)`: 將目前的值向左移動一位，為新的位元騰出空間 (最低位 D0 會變成 0)。
-                    // 2. `| matrix[y, x]`: 將新的像素值 (0 或 1) 透過「或」運算，放入剛騰出的最低位。
-                    // 這個操作重複 8 次後，第一個進來的像素就會被推到最高位 (D7)。
-
-                    value = (value << 1) | matrix[y, x];
-                    bitCount++;           // 每處理一個像素，計數器加一
-
-                    // --- 檢查是否已打包滿一個位元組 ---
-                    if (bitCount == 8)
-                    {
-                        // 如果已經打包了 8 個位元，就將其轉換為十六進位字串並附加
-                        // "X2" 格式化指令表示：X=大寫十六進位，2=總是顯示兩位數 (例如 7 會變成 07)
-                        sb.Append($"0x{value:X2}, ");
-                        // 重設變數，準備打包下一個位元組
-                        value = 0;
-                        bitCount = 0;
-                    }
+                    rowBuilder.Append(matrix[y, x].ToString());
                 }
-
-                // --- 檢查是否已打包滿一個位元組 ---
-                if (bitCount > 0)
-                {
-                    // 將剩餘的位元向左移動，直到填滿一個 8 位的位元組。
-                    // 這樣可以確保剩餘的像素位於高位，而低位會自動補 0。
-                    // 例如，若剩餘 3 個位元 (bitCount=3)，則需要左移 8-3=5 次。
-                    value <<= (8 - bitCount);
-                    sb.Append($"0x{value:X2}, ");
-                }
-                // 處理完一行後，換行以增加可讀性
-                sb.AppendLine();
+                result[y] = rowBuilder.ToString();
             }
-            sb.AppendLine("};");
-            return sb.ToString();
+
+            return result;
         }
+
         /*
-                /// <summary>
-                /// 掃描 Bitmap，找出非白色像素構成的最小邊界矩形。
-                /// </summary>
-                /// <param name="bmp">要掃描的 Bitmap</param>
-                /// <returns>包含實際內容的矩形區域</returns>
-                private RectangleF FindVisualBoundingBox(Bitmap bmp)
-                {
-                    int top = -1, bottom = -1, left = -1, right = -1;
+        private void SaveHexAndJson(int[,] matrix, string character, string fontName, float fontSize, string hexText)
+        {
+            if (matrix == null || matrix.Length == 0 || string.IsNullOrWhiteSpace(hexText))
+            {
+                MessageBox.Show("資料不完整，無法存檔！");
+                return;
+            }
 
-                    // 從上到下掃描，找第一個有內容的 y 座標 (top)
-                    for (int y = 0; y < bmp.Height; y++)
-                    {
-                        for (int x = 0; x < bmp.Width; x++)
-                        {
-                            if (bmp.GetPixel(x, y).R < 250) // 容忍一點點反鋸齒的灰階
-                            {
-                                top = y;
-                                goto FoundTop;
-                            }
-                        }
-                    }
-                FoundTop:
-                    if (top == -1) return RectangleF.Empty; // 全白圖片
+            // 確認資料夾
+            string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "font");
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
 
-                    // 從下到上掃描，找第一個有內容的 y 座標 (bottom)
-                    for (int y = bmp.Height - 1; y >= 0; y--)
-                    {
-                        for (int x = 0; x < bmp.Width; x++)
-                        {
-                            if (bmp.GetPixel(x, y).R < 250)
-                            {
-                                bottom = y;
-                                goto FoundBottom;
-                            }
-                        }
-                    }
-                FoundBottom:
+            // 日期時間檔名
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-                    // 從左到右掃描，找第一個有內容的 x 座標 (left)
-                    for (int x = 0; x < bmp.Width; x++)
-                    {
-                        for (int y = top; y <= bottom; y++)
-                        {
-                            if (bmp.GetPixel(x, y).R < 250)
-                            {
-                                left = x;
-                                goto FoundLeft;
-                            }
-                        }
-                    }
-                FoundLeft:
+            //H file
+            string hexFile = Path.Combine(folderPath, $"Font_{timestamp}.h");
+            File.WriteAllText(hexFile, Hex.Text);
 
-                    // 從右到左掃描，找第一個有內容的 x 座標 (right)
-                    for (int x = bmp.Width - 1; x >= 0; x--)
-                    {
-                        for (int y = top; y <= bottom; y++)
-                        {
-                            if (bmp.GetPixel(x, y).R < 250)
-                            {
-                                right = x;
-                                goto FoundRight;
-                            }
-                        }
-                    }
-                FoundRight:
 
-                    // 加上一點 padding 避免筆劃被切到
-                    int padding = 2;
-                    left = Math.Max(0, left - padding);
-                    right = Math.Min(bmp.Width - 1, right + padding);
-                    top = Math.Max(0, top - padding);
-                    bottom = Math.Min(bmp.Height - 1, bottom + padding);
+            // Json file
+            var fontData = new
+            {
+                Character = character,
+                FontName = fontName,
+                FontSize = fontSize,
+                Matrix = matrix // 直接儲存二維陣列
+            };
 
-                    return new RectangleF(left, top, right - left + 1, bottom - top + 1);
-                }
+            string json = JsonSerializer.Serialize(fontData, new JsonSerializerOptions { WriteIndented = true });
+            string jsonFile = Path.Combine(folderPath, $"Font_{timestamp}.json");
+            File.WriteAllText(jsonFile, json);
 
-                */
-
+            MessageBox.Show($"已成功存檔到資料夾:\n{hexFile}\n{jsonFile}");
+        }
+        */
     }
     //public partial class FontToLCD : Form end
 
