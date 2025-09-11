@@ -1,8 +1,10 @@
-
-using System;
+ï»¿
+using System; 
 using System.Drawing;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 //using System.Text;
 using System.Windows.Forms;
@@ -10,23 +12,25 @@ using System.Xml.Linq;
 
 
 namespace FontToLCD
-    {
+{
+
     public partial class FontToLCD : Form
     {
 
         /// <summary>
-        /// ¥Î©óÀx¦s¡u¦r«¬³]­p¡v¤À­¶¤¤¡A¨Ï¥ÎªÌ¥¿¦b½s¿èªºÂI°}¯x°}¡C
+        /// ç”¨æ–¼å„²å­˜ã€Œå­—å‹è¨­è¨ˆã€åˆ†é ä¸­ï¼Œä½¿ç”¨è€…æ­£åœ¨ç·¨è¼¯çš„é»é™£çŸ©é™£ã€‚
         /// </summary>
         private int[,]? _dotDesignMatrix;
 
-        // (¥i¿ï) ±NÃ¸¹ÏªºÁY©ñ¤ñ¨Ò¤]³]¬°ÅÜ¼Æ¡A¤è«K²Î¤@­×§ï
+        // (å¯é¸) å°‡ç¹ªåœ–çš„ç¸®æ”¾æ¯”ä¾‹ä¹Ÿè¨­ç‚ºè®Šæ•¸ï¼Œæ–¹ä¾¿çµ±ä¸€ä¿®æ”¹
         private int _designPixelScale = 20;
 
-        // ¦s³Ì«á¤@¦¸¥Í¦¨ªº¯x°}
-        private int[,]? _lastGeneratedMatrix; // ·s¼W¡G¥Î©óÀx¦s Button1_Click ¥Í¦¨ªº¯x°}
+        // å­˜æœ€å¾Œä¸€æ¬¡ç”Ÿæˆçš„çŸ©é™£
+        private int[,]? _lastGeneratedMatrix; // æ–°å¢ï¼šç”¨æ–¼å„²å­˜ Button1_Click ç”Ÿæˆçš„çŸ©é™£
 
 
-
+        private string _currentConverterType = "";
+        private string[] _selectedFiles = Array.Empty<string>();
 
         public FontToLCD()
         {
@@ -34,52 +38,46 @@ namespace FontToLCD
             InitForm();
 
 
-            // ¤â°Ê¸j©w«ö¶s¨Æ¥ó¡]¦pªG³]­p®v¤å¥ó¤¤¨S¦³¡^
+            // æ‰‹å‹•ç¶å®šæŒ‰éˆ•äº‹ä»¶ï¼ˆå¦‚æœè¨­è¨ˆå¸«æ–‡ä»¶ä¸­æ²’æœ‰ï¼‰
             SafeFontArray.Click += SafeFontArray_Click;
 
             SafeCreateFont.Click += SafeCreateFont_Click;
-
-
             DesignCanvas.MouseClick += DesignCanvas_MouseClick;
             CreateGridButton.Click += CreateGridButton_Click;
             GenerateHexButton.Click += GenerateHexButton_Click;
-
         }
 
         private void InitForm()
         {
-            // ªì©l¤Æ¦r«¬ ComboBox
+            // åˆå§‹åŒ–å­—å‹ ComboBox
             foreach (FontFamily ff in FontFamily.Families)
                 FontType.Items.Add(ff.Name);
             FontType.SelectedIndex = 0;
 
-            // ªì©l¤Æ¤j¤p 
-            // ¹w³] 8
+            // åˆå§‹åŒ–å¤§å° 
+            // é è¨­ 8
             FontSize.Items.AddRange(new object[] { "8", "12", "16", "24", "32" });
             FontSize.SelectedIndex = 0;
-            // «ö¶s¨Æ¥ó
+            // æŒ‰éˆ•äº‹ä»¶
             button1.Click += Button1_Click;
 
-            // ¹w³]¤å¦r
+            // é è¨­æ–‡å­—
             Imput.Text = "a";
-            // ªì©l¤Æ¥Ø¼Ğ¿Ã¹õÃş«¬ ComboBox
+            // åˆå§‹åŒ–ç›®æ¨™è¢å¹•é¡å‹ ComboBox
             HEX_Type.Items.AddRange(new object[] {
-                "³q¥Î¤ô¥­±½´y (³æ¦â)",
-                "OLED SH1106/SSD1306 (««ª½)",
-                "TFT ILI9225 (±m¦â RGB565)"
+                "é€šç”¨æ°´å¹³æƒæ (å–®è‰²)",
+                "OLED SH1106/SSD1306 (å‚ç›´)",
+                "TFT ILI9225 (å½©è‰² RGB565)"
             });
-            HEX_Type.SelectedIndex = 0; // ¹w³]¿ï¾Ü²Ä¤@­Ó¿ï¶µ
+            HEX_Type.SelectedIndex = 0; // é è¨­é¸æ“‡ç¬¬ä¸€å€‹é¸é …
 
             //
             Design_HEX_Type.Items.AddRange(new object[] {
-                "³q¥Î¤ô¥­±½´y(³æ¦â)",
-                "OLED SH1106/SSD1306(««ª½)",
-                "TFT ILI9225(±m¦â RGB565)"
+                "é€šç”¨æ°´å¹³æƒæ(å–®è‰²)",
+                "OLED SH1106/SSD1306(å‚ç›´)",
+                "TFT ILI9225(å½©è‰² RGB565)"
             });
-            Design_HEX_Type.SelectedIndex = 1; // ¹w³]¿ï¾Ü²Ä¤@­Ó¿ï¶µ
-
-            
-
+            Design_HEX_Type.SelectedIndex = 1; // é è¨­é¸æ“‡ç¬¬ä¸€å€‹é¸é …
         }
 
         private void Button1_Click(object? sender, EventArgs e)
@@ -91,60 +89,63 @@ namespace FontToLCD
             //int fontSize = int.TryParse(FontSize.SelectedItem?.ToString(), out int fs) ? fs : 16;
             float fontSize = float.TryParse(FontSize.SelectedItem?.ToString(), out float fs) ? fs : 16;
 
-            int[,] matrix; // ¥Î¨ÓÀx¦s³Ì²×ªº 0/1 ¯x°}
+            int[,] matrix; // ç”¨ä¾†å„²å­˜æœ€çµ‚çš„ 0/1 çŸ©é™£
 
 
-            // µe¦r
+            // ç•«å­—
             using (Bitmap bmp = DrawCharToBitmap(text.Substring(0, 1), fontName, fontSize))
             {
-                // Âà¯x°}
+                // è½‰çŸ©é™£
                 matrix = BitmapToMatrix(bmp);
                 _lastGeneratedMatrix = matrix;
 
-                // --- ¨BÆJ 2: ®Ú¾Ú ComboBox ªº¿ï¾Ü¡A«Ø¥ß¹ïÀ³ªºÂà´«¾¹ ---
-                // ³o´N¬O¡u¤u¼t¼Ò¦¡¡vªºÂ²³æ¹ê²{¡A®Ú¾Ú­q³æ¡]¨Ï¥ÎªÌ¿ï¾Ü¡^¥Í²£¹ïÀ³ªº¤u¨ã¡C
-                IScreenConverter? converter = null; // «Å§i¤@­Ó¤¶­±ÅÜ¼Æ¡A¥¦¥i¥H«ù¦³¥ô¦ó¤@ºØÂà´«¾¹
+                // --- æ­¥é©Ÿ 2: æ ¹æ“š ComboBox çš„é¸æ“‡ï¼Œå»ºç«‹å°æ‡‰çš„è½‰æ›å™¨ ---
+                // é€™å°±æ˜¯ã€Œå·¥å» æ¨¡å¼ã€çš„ç°¡å–®å¯¦ç¾ï¼Œæ ¹æ“šè¨‚å–®ï¼ˆä½¿ç”¨è€…é¸æ“‡ï¼‰ç”Ÿç”¢å°æ‡‰çš„å·¥å…·ã€‚
+                IScreenConverter? converter = null; // å®£å‘Šä¸€å€‹ä»‹é¢è®Šæ•¸ï¼Œå®ƒå¯ä»¥æŒæœ‰ä»»ä½•ä¸€ç¨®è½‰æ›å™¨
                 string selectedScreen = HEX_Type.SelectedItem?.ToString() ?? "";
 
 
                 switch (selectedScreen)
                 {
-                    case "³q¥Î¤ô¥­±½´y (³æ¦â)":
+                    case "é€šç”¨æ°´å¹³æƒæ (å–®è‰²)":
                         converter = new HorizontalMonoConverter();
+                        _currentConverterType = "HorizontalMonoConverter";
                         break;
-                    case "OLED SH1106/SSD1306 (««ª½)":
+                    case "OLED SH1106/SSD1306 (å‚ç›´)":
                         converter = new Sh1106Converter();
+                        _currentConverterType = "Sh1106Converter";
                         break;
-                    case "TFT ILI9225 (±m¦â RGB565)":
+                    case "TFT ILI9225 (å½©è‰² RGB565)":
                         converter = new Ili9225Converter();
+                        _currentConverterType = "Ili9225Converter";
                         break;
                     default:
-                        // ¦pªG¨Ï¥ÎªÌ¨S¦³¿ï¾Ü¡Aµ¹¥X´£¥Ü¨Ã°h¥X
-                        MessageBox.Show("½Ğ¿ï¾Ü¤@­Ó¦³®Äªº HEX ¿é¥XÃş«¬¡I");
+                        // å¦‚æœä½¿ç”¨è€…æ²’æœ‰é¸æ“‡ï¼Œçµ¦å‡ºæç¤ºä¸¦é€€å‡º
+                        MessageBox.Show("è«‹é¸æ“‡ä¸€å€‹æœ‰æ•ˆçš„ HEX è¼¸å‡ºé¡å‹ï¼");
                         return;
                 }
 
 
-                // --- ¨BÆJ 3: °õ¦æÂà´«¨Ã§ó·s UI ---
-                // Àò¨úÃC¦â¡C§Y¨Ï¬O³æ¦âÂà´«¾¹¡A§Ú­Ì¤]¶Ç¤JÃC¦â¡A¥u¬O¥¦¤£·|¨Ï¥Î¦Ó¤w¡C
-                // ³o¸Ì§Ú­Ì¥Î¶Â¦â©M¥Õ¦â§@¬°¹w³]­È¡C
-                // ¦pªG±z¥[¤J¤FÃC¦â¿ï¾Ü¾¹¡A´N±q¨º¸ÌÀò¨úÃC¦â¡C
+                // --- æ­¥é©Ÿ 3: åŸ·è¡Œè½‰æ›ä¸¦æ›´æ–° UI ---
+                // ç²å–é¡è‰²ã€‚å³ä½¿æ˜¯å–®è‰²è½‰æ›å™¨ï¼Œæˆ‘å€‘ä¹Ÿå‚³å…¥é¡è‰²ï¼Œåªæ˜¯å®ƒä¸æœƒä½¿ç”¨è€Œå·²ã€‚
+                // é€™è£¡æˆ‘å€‘ç”¨é»‘è‰²å’Œç™½è‰²ä½œç‚ºé è¨­å€¼ã€‚
+                // å¦‚æœæ‚¨åŠ å…¥äº†é¡è‰²é¸æ“‡å™¨ï¼Œå°±å¾é‚£è£¡ç²å–é¡è‰²ã€‚
                 Color foregroundColor = Color.Black;
                 Color backgroundColor = Color.White;
 
-                // ³o´N¬O¾ã­Ó¬[ºc³ÌÀu¶®ªº¦a¤è¡I
-                // µL½× converter ¨ì©³¬O­şºØÂà´«¾¹¡A§Ú­Ì³£¥Î§¹¥ş¬Û¦Pªº¤è¦¡©I¥s¥¦¡C
-                // ¥Dµ{¦¡¤£»İ­nª¾¹DÂà´«ªº¥ô¦ó²Ó¸`¡C
+                // é€™å°±æ˜¯æ•´å€‹æ¶æ§‹æœ€å„ªé›…çš„åœ°æ–¹ï¼
+                // ç„¡è«– converter åˆ°åº•æ˜¯å“ªç¨®è½‰æ›å™¨ï¼Œæˆ‘å€‘éƒ½ç”¨å®Œå…¨ç›¸åŒçš„æ–¹å¼å‘¼å«å®ƒã€‚
+                // ä¸»ç¨‹å¼ä¸éœ€è¦çŸ¥é“è½‰æ›çš„ä»»ä½•ç´°ç¯€ã€‚
                 Hex.Text = converter.Convert(matrix, foregroundColor, backgroundColor);
 
-                // ¹wÄı¡]©ñ¤jÅã¥Ü¡^
+                // é è¦½ï¼ˆæ”¾å¤§é¡¯ç¤ºï¼‰
                 BitView.Image = DrawMatrixPreview(matrix, 20);
             }
         }
 
         private Bitmap DrawCharToBitmap(string text, string fontName, float fontSize)
         {
-            // ¨BÆJ 1: ¥ı¥Î MeasureString ²£¥Í¤@­Ó¡u°÷¤j¡vªº¡B¥]§tªÅ¥Õªºªì©lÂI°}¹Ï
+            // æ­¥é©Ÿ 1: å…ˆç”¨ MeasureString ç”¢ç”Ÿä¸€å€‹ã€Œå¤ å¤§ã€çš„ã€åŒ…å«ç©ºç™½çš„åˆå§‹é»é™£åœ–
             Bitmap initialBmp;
             using (Font font = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Point))
             {
@@ -158,7 +159,7 @@ namespace FontToLCD
 
                     if (bmpWidth <= 0 || bmpHeight <= 0) return new Bitmap(1, 1);
 
-                    // «Ø¥ßªì©lÂI°}¹Ï
+                    // å»ºç«‹åˆå§‹é»é™£åœ–
                     initialBmp = new Bitmap(bmpWidth, bmpHeight);
                     using (Graphics initialG = Graphics.FromImage(initialBmp))
                     {
@@ -169,45 +170,45 @@ namespace FontToLCD
                 }
             }
 
-            // ¨BÆJ 2: ±½´y³o­Óªì©lÂI°}¹Ï¡A§ä¥X¦r¤¸µ§¹ºªº¡u¯u¥¿¡vµøÄ±Ãä¬É
-            // ³o¸Ì§Ú­Ìª½±µ¨Ï¥Î±zµ{¦¡¤¤¤w¦³ªº FindVisualBoundingBox ¤èªk¡A¦ı»İ­n°µ¤@ÂI­×§ï
-            // ¦]¬°§Ú­Ì¬O¶Â¥Õ¹Ï¡A©Ò¥H§PÂ_±ø¥ó­n§ï
+            // æ­¥é©Ÿ 2: æƒæé€™å€‹åˆå§‹é»é™£åœ–ï¼Œæ‰¾å‡ºå­—å…ƒç­†åŠƒçš„ã€ŒçœŸæ­£ã€è¦–è¦ºé‚Šç•Œ
+            // é€™è£¡æˆ‘å€‘ç›´æ¥ä½¿ç”¨æ‚¨ç¨‹å¼ä¸­å·²æœ‰çš„ FindVisualBoundingBox æ–¹æ³•ï¼Œä½†éœ€è¦åšä¸€é»ä¿®æ”¹
+            // å› ç‚ºæˆ‘å€‘æ˜¯é»‘ç™½åœ–ï¼Œæ‰€ä»¥åˆ¤æ–·æ¢ä»¶è¦æ”¹
             Rectangle visualBounds = FindVisualBoundingBox_For_BlackAndWhite(initialBmp);
 
             if (visualBounds.IsEmpty || visualBounds.Width <= 0 || visualBounds.Height <= 0)
             {
                 initialBmp.Dispose();
-                return new Bitmap(1, 1); // ¦pªG¬OªÅ¥Õ¦r¤¸¡Aªğ¦^¤@­Ó¤p¹Ï
+                return new Bitmap(1, 1); // å¦‚æœæ˜¯ç©ºç™½å­—å…ƒï¼Œè¿”å›ä¸€å€‹å°åœ–
             }
 
-            // ¨BÆJ 3: ®Ú¾Úºë½TªºµøÄ±Ãä¬É¡Aµô°Å¥X³Ì²×ªºÂI°}¹Ï
+            // æ­¥é©Ÿ 3: æ ¹æ“šç²¾ç¢ºçš„è¦–è¦ºé‚Šç•Œï¼Œè£å‰ªå‡ºæœ€çµ‚çš„é»é™£åœ–
             Bitmap finalBmp = new Bitmap(visualBounds.Width, visualBounds.Height);
             using (Graphics g = Graphics.FromImage(finalBmp))
             {
                 g.Clear(Color.White);
-                // DrawImage ¥i¥H¥Î¨Ó°õ¦æµô°Å¡G
-                // ±N initialBmp ¤¤ visualBounds °Ï°ìªº¤º®e¡Aµe¨ì finalBmp ªº (0,0) ¦ì¸m
+                // DrawImage å¯ä»¥ç”¨ä¾†åŸ·è¡Œè£å‰ªï¼š
+                // å°‡ initialBmp ä¸­ visualBounds å€åŸŸçš„å…§å®¹ï¼Œç•«åˆ° finalBmp çš„ (0,0) ä½ç½®
                 g.DrawImage(initialBmp,
-                            new Rectangle(0, 0, finalBmp.Width, finalBmp.Height), // ¥Ø¼Ğ¯x§Î
-                            visualBounds, // ¨Ó·½¯x§Î
+                            new Rectangle(0, 0, finalBmp.Width, finalBmp.Height), // ç›®æ¨™çŸ©å½¢
+                            visualBounds, // ä¾†æºçŸ©å½¢
                             GraphicsUnit.Pixel);
             }
 
-            initialBmp.Dispose(); // ÄÀ©ñ¤¤¤¶¹Ï¤ùªº¸ê·½
+            initialBmp.Dispose(); // é‡‹æ”¾ä¸­ä»‹åœ–ç‰‡çš„è³‡æº
             return finalBmp;
         }
 
-        // ³o¬O°w¹ï¶Â¥ÕÂI°}¹ÏÀu¤Æªº FindVisualBoundingBox
+        // é€™æ˜¯é‡å°é»‘ç™½é»é™£åœ–å„ªåŒ–çš„ FindVisualBoundingBox
         private Rectangle FindVisualBoundingBox_For_BlackAndWhite(Bitmap bmp)
         {
             int top = -1, bottom = -1, left = -1, right = -1;
 
-            // ±q¤W¨ì¤U
+            // å¾ä¸Šåˆ°ä¸‹
             for (int y = 0; y < bmp.Height; y++)
             {
                 for (int x = 0; x < bmp.Width; x++)
                 {
-                    if (bmp.GetPixel(x, y).R == 0) // ¶Â¦â
+                    if (bmp.GetPixel(x, y).R == 0) // é»‘è‰²
                     {
                         top = y;
                         goto FoundTop;
@@ -215,9 +216,9 @@ namespace FontToLCD
                 }
             }
         FoundTop:
-            if (top == -1) return Rectangle.Empty; // ¥ş¥Õ
+            if (top == -1) return Rectangle.Empty; // å…¨ç™½
 
-            // ±q¤U¨ì¤W
+            // å¾ä¸‹åˆ°ä¸Š
             for (int y = bmp.Height - 1; y >= 0; y--)
             {
                 for (int x = 0; x < bmp.Width; x++)
@@ -231,7 +232,7 @@ namespace FontToLCD
             }
         FoundBottom:
 
-            // ±q¥ª¨ì¥k
+            // å¾å·¦åˆ°å³
             for (int x = 0; x < bmp.Width; x++)
             {
                 for (int y = top; y <= bottom; y++)
@@ -245,7 +246,7 @@ namespace FontToLCD
             }
         FoundLeft:
 
-            // ±q¥k¨ì¥ª
+            // å¾å³åˆ°å·¦
             for (int x = bmp.Width - 1; x >= 0; x--)
             {
                 for (int y = top; y <= bottom; y++)
@@ -262,8 +263,7 @@ namespace FontToLCD
             return new Rectangle(left, top, right - left + 1, bottom - top + 1);
         }
 
-
-        // Bitmap Âà¯x°}¡A¦Ç¶¥§PÂ_
+        // Bitmap è½‰çŸ©é™£ï¼Œç°éšåˆ¤æ–·
         private int[,] BitmapToMatrix(Bitmap bmp)
         {
             int[,] matrix = new int[bmp.Height, bmp.Width];
@@ -273,7 +273,7 @@ namespace FontToLCD
                 {
                     Color p = bmp.GetPixel(x, y);
                     int gray = (int)(0.3 * p.R + 0.59 * p.G + 0.11 * p.B);
-                    matrix[y, x] = gray < 128 ? 1 : 0; // ¶Â¦â=1
+                    matrix[y, x] = gray < 128 ? 1 : 0; // é»‘è‰²=1
                 }
             }
             return matrix;
@@ -298,7 +298,7 @@ namespace FontToLCD
                         {
                             g.FillRectangle(Brushes.Black, rect);
                         }
-                        g.DrawRectangle(Pens.Gray, rect); // µe®æ¤l½u
+                        g.DrawRectangle(Pens.Gray, rect); // ç•«æ ¼å­ç·š
                     }
                 }
             }
@@ -308,10 +308,10 @@ namespace FontToLCD
 
         //
         /// <summary>
-        /// ¤@­Ó»²§U¨ç¦¡¡A­t³d®Ú¾Ú _dotDesignMatrix ªº·í«eª¬ºA¡A§ó·sµe¥¬©M HEX ¿é¥X¡C
+        /// ä¸€å€‹è¼”åŠ©å‡½å¼ï¼Œè² è²¬æ ¹æ“š _dotDesignMatrix çš„ç•¶å‰ç‹€æ…‹ï¼Œæ›´æ–°ç•«å¸ƒå’Œ HEX è¼¸å‡ºã€‚
         /// </summary>
         /// <summary>
-        /// (­×§ï«á) ¥u­t³d®Ú¾Ú _dotDesignMatrix ªº·í«eª¬ºA¡A§ó·sµe¥¬¡C
+        /// (ä¿®æ”¹å¾Œ) åªè² è²¬æ ¹æ“š _dotDesignMatrix çš„ç•¶å‰ç‹€æ…‹ï¼Œæ›´æ–°ç•«å¸ƒã€‚
         /// </summary>
         private void RedrawCanvas()
         {
@@ -321,80 +321,81 @@ namespace FontToLCD
 
 
         /// <summary>
-        /// ¤@­Ó»²§U¨ç¦¡¡A­t³d®Ú¾Ú _dotDesignMatrix ªº·í«eª¬ºA¡A§ó·sµe¥¬©M HEX ¿é¥X¡C
+        /// ä¸€å€‹è¼”åŠ©å‡½å¼ï¼Œè² è²¬æ ¹æ“š _dotDesignMatrix çš„ç•¶å‰ç‹€æ…‹ï¼Œæ›´æ–°ç•«å¸ƒå’Œ HEX è¼¸å‡ºã€‚
         /// </summary>
         private void UpdateHexOutput()
         {
 
             if (_dotDesignMatrix == null)
             {
-                DesignHexOutput.Text = "½Ğ¥ıÂIÀ»¡u·s«Ø/²M°£µe¥¬¡v¨Ó¶}©l³]­p¡C";
+                DesignHexOutput.Text = "è«‹å…ˆé»æ“Šã€Œæ–°å»º/æ¸…é™¤ç•«å¸ƒã€ä¾†é–‹å§‹è¨­è¨ˆã€‚";
                 return;
             }
 
-            // --- 2. §ó·s¥kÃäªº HEX ¿é¥X (¦@¥Î¾ã­ÓÂà´«¾¹¬[ºc) ---
-            // ³o¬qÅŞ¿è©M±z²Ä¤@­Ó¤À­¶ªº button1_Click ¤¤ªºÂà´«ÅŞ¿è§¹¥ş¤@¼Ë¡I
+            // --- 2. æ›´æ–°å³é‚Šçš„ HEX è¼¸å‡º (å…±ç”¨æ•´å€‹è½‰æ›å™¨æ¶æ§‹) ---
+            // é€™æ®µé‚è¼¯å’Œæ‚¨ç¬¬ä¸€å€‹åˆ†é çš„ button1_Click ä¸­çš„è½‰æ›é‚è¼¯å®Œå…¨ä¸€æ¨£ï¼
             IScreenConverter? converter = null;
 
             string selectedScreen = Design_HEX_Type.SelectedItem?.ToString() ?? "";
 
 
             //Design_HEX_Type.Items.AddRange(new object[] {
-            //    "³q¥Î¤ô¥­±½´y(³æ¦â)",
-            //    "OLED SH1106/SSD1306(««ª½)",
-            //    "TFT ILI9225(±m¦â RGB565)"
+            //    "é€šç”¨æ°´å¹³æƒæ(å–®è‰²)",
+            //    "OLED SH1106/SSD1306(å‚ç›´)",
+            //    "TFT ILI9225(å½©è‰² RGB565)"
             //});
 
             switch (selectedScreen)
             {
-                case "³q¥Î¤ô¥­±½´y(³æ¦â)":
+                case "é€šç”¨æ°´å¹³æƒæ(å–®è‰²)":
                     converter = new HorizontalMonoConverter();
+                    _currentConverterType = "HorizontalMonoConverter";
                     break;
-                case "OLED SH1106/SSD1306(««ª½)": // ­×¥¿¦WºÙ
-
+                case "OLED SH1106/SSD1306(å‚ç›´)": // ä¿®æ­£åç¨±
                     converter = new Sh1106Converter();
+                    _currentConverterType = "Sh1106Converter";
                     break;
-                case "TFT ILI9225(±m¦â RGB565)":
-
+                case "TFT ILI9225(å½©è‰² RGB565)":
                     converter = new Ili9225Converter();
+                    _currentConverterType = "Ili9225Converter";
                     break;
                 default:
-                    DesignHexOutput.Text = "½Ğ¦b²Ä¤@­Ó¤À­¶¿ï¾Ü¦³®Äªº HEX ¿é¥XÃş«¬¡C";
+                    DesignHexOutput.Text = "è«‹åœ¨ç¬¬ä¸€å€‹åˆ†é é¸æ“‡æœ‰æ•ˆçš„ HEX è¼¸å‡ºé¡å‹ã€‚";
                     return;
             }
 
-            // ¹ï©óÂI°}³]­p¡A«e´º¬O¶Â¡A­I´º¬O¥Õ
+            // å°æ–¼é»é™£è¨­è¨ˆï¼Œå‰æ™¯æ˜¯é»‘ï¼ŒèƒŒæ™¯æ˜¯ç™½
             Color foregroundColor = Color.Black;
             Color backgroundColor = Color.White;
 
-            // ©I¥sÂà´«¾¹¡A±o¨ì HEX ¦r¦ê
+            // å‘¼å«è½‰æ›å™¨ï¼Œå¾—åˆ° HEX å­—ä¸²
             DesignHexOutput.Text = converter.Convert(_dotDesignMatrix, foregroundColor, backgroundColor);
         }
 
 
         private void CreateGridButton_Click(object? sender, EventArgs e)
         {
-            // 1. ±q NumericUpDown ±±¨î¶µÅª¨ú¨Ï¥ÎªÌ·Q­nªº¤Ø¤o
-            //    (½Ğ½T«O±z¦b³]­p®v¤¤¡A¤w¸g±N³o¨â­Ó±±¨î¶µ©R¦W¬° GridWidthNumeric ©M GridHeightNumeric)
+            // 1. å¾ NumericUpDown æ§åˆ¶é …è®€å–ä½¿ç”¨è€…æƒ³è¦çš„å°ºå¯¸
+            //    (è«‹ç¢ºä¿æ‚¨åœ¨è¨­è¨ˆå¸«ä¸­ï¼Œå·²ç¶“å°‡é€™å…©å€‹æ§åˆ¶é …å‘½åç‚º GridWidthNumeric å’Œ GridHeightNumeric)
             int width = (int)GridWidthNumeric.Value;
             int height = (int)GridHeightNumeric.Value;
 
-            // 2. Ãä¬ÉÀË¬d (¥i¿ï¦ı±ÀÂË)¡A¨¾¤î¨Ï¥ÎªÌ¿é¤J 0 ©Î¹L¤jªº­È
+            // 2. é‚Šç•Œæª¢æŸ¥ (å¯é¸ä½†æ¨è–¦)ï¼Œé˜²æ­¢ä½¿ç”¨è€…è¼¸å…¥ 0 æˆ–éå¤§çš„å€¼
             if (width <= 0 || height <= 0)
             {
-                MessageBox.Show("µe¥¬¼e«×©M°ª«×¥²¶·¤j©ó 0¡I");
+                MessageBox.Show("ç•«å¸ƒå¯¬åº¦å’Œé«˜åº¦å¿…é ˆå¤§æ–¼ 0ï¼");
                 return;
             }
 
             //
             //
-            //3. ®Ú¾ÚÅª¨ú¨ìªº¤Ø¤o¡A«Ø¥ß¤@­Ó¥ş·sªº¡B¥ş¬° 0 ªº¤Gºû°}¦C
-            //    ³o·|ÂĞ»\±¼ÂÂªº _dotDesignMatrix
+            //3. æ ¹æ“šè®€å–åˆ°çš„å°ºå¯¸ï¼Œå»ºç«‹ä¸€å€‹å…¨æ–°çš„ã€å…¨ç‚º 0 çš„äºŒç¶­é™£åˆ—
+            //    é€™æœƒè¦†è“‹æ‰èˆŠçš„ _dotDesignMatrix
             _dotDesignMatrix = new int[height, width];
 
-            // 4. ©I¥s»²§U¨ç¦¡¨Ó­«Ã¸ªÅ¥Õµe¥¬¨Ã§ó·s HEX
-            RedrawCanvas();   // ³o·|µe¥X¤@­ÓªÅ¥Õªººô®æ
-            UpdateHexOutput(); // ³o·|Åã¥Ü¤@°ï 0x00
+            // 4. å‘¼å«è¼”åŠ©å‡½å¼ä¾†é‡ç¹ªç©ºç™½ç•«å¸ƒä¸¦æ›´æ–° HEX
+            RedrawCanvas();   // é€™æœƒç•«å‡ºä¸€å€‹ç©ºç™½çš„ç¶²æ ¼
+            UpdateHexOutput(); // é€™æœƒé¡¯ç¤ºä¸€å † 0x00
         }
 
 
@@ -402,14 +403,14 @@ namespace FontToLCD
         {
             if (_dotDesignMatrix == null) return;
 
-            // 1. Àò¨ú·í«e¯x°}ªº¤Ø¤o¡C
-            //    _dotDesignMatrix.GetLength(0) Àò¨ú²Ä¤@­Óºû«×ªº¤j¤p (°ª«×/¦æ¼Æ)¡C
-            //    _dotDesignMatrix.GetLength(1) Àò¨ú²Ä¤G­Óºû«×ªº¤j¤p (¼e«×/Äæ¼Æ)¡C
+            // 1. ç²å–ç•¶å‰çŸ©é™£çš„å°ºå¯¸ã€‚
+            //    _dotDesignMatrix.GetLength(0) ç²å–ç¬¬ä¸€å€‹ç¶­åº¦çš„å¤§å° (é«˜åº¦/è¡Œæ•¸)ã€‚
+            //    _dotDesignMatrix.GetLength(1) ç²å–ç¬¬äºŒå€‹ç¶­åº¦çš„å¤§å° (å¯¬åº¦/æ¬„æ•¸)ã€‚
             int height = _dotDesignMatrix.GetLength(0);
             int width = _dotDesignMatrix.GetLength(1);
 
-            // 2. ±N·Æ¹«ªºÂIÀ»®y¼Ğ (e.X, e.Y) Âà´«¬°¯x°}ªº¯Á¤Ş (gridX, gridY)¡C
-            //    _designPixelScale ¬O±z¤§«e©w¸qªº¡B¨C­Ó¹³¯À®æ¤l©ñ¤jªº­¿²v (¨Ò¦p 20)¡C
+            // 2. å°‡æ»‘é¼ çš„é»æ“Šåº§æ¨™ (e.X, e.Y) è½‰æ›ç‚ºçŸ©é™£çš„ç´¢å¼• (gridX, gridY)ã€‚
+            //    _designPixelScale æ˜¯æ‚¨ä¹‹å‰å®šç¾©çš„ã€æ¯å€‹åƒç´ æ ¼å­æ”¾å¤§çš„å€ç‡ (ä¾‹å¦‚ 20)ã€‚
             int gridX = e.X / _designPixelScale;
             int gridY = e.Y / _designPixelScale;
 
@@ -417,26 +418,24 @@ namespace FontToLCD
 
             {
                 _dotDesignMatrix[gridY, gridX] = 1 - _dotDesignMatrix[gridY, gridX];
-                RedrawCanvas(); // ¥u­«Ã¸µe¥¬¡A¤£¦A§ó·s HEX
+                RedrawCanvas(); // åªé‡ç¹ªç•«å¸ƒï¼Œä¸å†æ›´æ–° HEX
             }
         }
 
         private void GenerateHexButton_Click(object? sender, EventArgs e)
         {
-            UpdateHexOutput(); // ¥u§ó·s HEX
+            UpdateHexOutput(); // åªæ›´æ–° HEX
         }
 
         private void SafeFontArray_Click(object? sender, EventArgs e)
         {
-            MessageBox.Show("SafeFontArray «ö¶s³QÂIÀ»¤F¡I", "´ú¸Õ", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
             if (_lastGeneratedMatrix == null || _lastGeneratedMatrix.Length == 0 || string.IsNullOrWhiteSpace(Hex.Text))
             {
-                MessageBox.Show("¡u¦r¤¸Âà´«¡v¤À­¶¨S¦³¥i¨ÑÀx¦sªº¼Æ¾Ú¡A½Ğ¥ıÂIÀ»¡uÂà´«¡v«ö¶s¡C", "Àx¦s¥¢±Ñ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("ã€Œå­—å…ƒè½‰æ›ã€åˆ†é æ²’æœ‰å¯ä¾›å„²å­˜çš„æ•¸æ“šï¼Œè«‹å…ˆé»æ“Šã€Œè½‰æ›ã€æŒ‰éˆ•ã€‚", "å„²å­˜å¤±æ•—", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            string character = Imput.Text.Length > 0 ? Imput.Text.Substring(0, 1) : "µL¦r¤¸";
+            string character = Imput.Text.Length > 0 ? Imput.Text.Substring(0, 1) : "ç„¡å­—å…ƒ";
 
             //string character = Imput.Text.Substring(0, 1);
             string fontName = FontType.SelectedItem?.ToString() ?? "Arial";
@@ -446,8 +445,8 @@ namespace FontToLCD
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
-                sfd.Filter = "¦r«¬¼Æ¾Ú¤å¥ó (*.h)|*.h|©Ò¦³¤å¥ó (*.*)|*.*";
-                sfd.Title = "Àx¦s¦r¤¸Âà´«¼Æ¾Ú";
+                sfd.Filter = "å­—å‹æ•¸æ“šæ–‡ä»¶ (*.h)|*.h|æ‰€æœ‰æ–‡ä»¶ (*.*)|*.*";
+                sfd.Title = "å„²å­˜å­—å…ƒè½‰æ›æ•¸æ“š";
                 sfd.FileName = $"Char_{character}_Font_{fontName}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}";
 
                 SaveHexAndJson(_lastGeneratedMatrix, character, fontName, fontSize, hexText);
@@ -458,14 +457,12 @@ namespace FontToLCD
         private void SafeCreateFont_Click(object? sender, EventArgs e)
         {
 
-            MessageBox.Show("SafeFontArray «ö¶s³QÂIÀ»¤F¡I", "´ú¸Õ", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
             if (_dotDesignMatrix == null)
             {
-                MessageBox.Show("½Ğ¥ı¦b¡u¦r«¬³]­p¡v¤À­¶³Ğ«Øºô®æ", "Àx¦s¥¢±Ñ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("è«‹å…ˆåœ¨ã€Œå­—å‹è¨­è¨ˆã€åˆ†é å‰µå»ºç¶²æ ¼", "å„²å­˜å¤±æ•—", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            //int[,] matrix = BitmapToMatrixFromDesignCanvas(); // §Aªº DesignCanvas ¹ïÀ³¯x°}
+            //int[,] matrix = BitmapToMatrixFromDesignCanvas(); // ä½ çš„ DesignCanvas å°æ‡‰çŸ©é™£
             string character = "Custom";
             string fontName = "CustomDesign";
             float fontSize = 0;
@@ -474,43 +471,48 @@ namespace FontToLCD
             SaveHexAndJson(_dotDesignMatrix, character, fontName, fontSize, hexText);
         }
 
-
-
         /// <summary>
-        /// ¹ê»Ú°õ¦æÀx¦s .h ©M .json ÀÉ®×ªºÅŞ¿è¡C
+        /// å¯¦éš›åŸ·è¡Œå„²å­˜ .h å’Œ .json æª”æ¡ˆçš„é‚è¼¯ã€‚
         /// </summary>
-        /// <param name="matrix">­nÀx¦sªºÂI°}¯x°}¡C</param>
-        /// <param name="character">¦r¤¸´y­z¡C</param>
-        /// <param name="fontName">¦r«¬¦WºÙ¡C</param>
-        /// <param name="fontSize">¦r«¬¤j¤p¡C</param>
-        /// <param name="hexText">HEX ¦r¦ê¡C</param>
-        /// <param name="baseFilePath">¤£§t°ÆÀÉ¦Wªº§¹¾ãÀÉ®×¸ô®| (¨Ò¦p: C:\MyFonts\Font_20231027_103000)¡C</param>
+        /// <param name="matrix">è¦å„²å­˜çš„é»é™£çŸ©é™£ã€‚</param>
+        /// <param name="character">å­—å…ƒæè¿°ã€‚</param>
+        /// <param name="fontName">å­—å‹åç¨±ã€‚</param>
+        /// <param name="fontSize">å­—å‹å¤§å°ã€‚</param>
+        /// <param name="hexText">HEX å­—ä¸²ã€‚</param>
+        /// <param name="baseFilePath">ä¸å«å‰¯æª”åçš„å®Œæ•´æª”æ¡ˆè·¯å¾‘ (ä¾‹å¦‚: C:\MyFonts\Font_20231027_103000)ã€‚</param>
         ///
 
         private void SaveHexAndJson(int[,] matrix, string character, string fontName, float fontSize, string hexText)
         {
             if (matrix == null || matrix.Length == 0 || string.IsNullOrWhiteSpace(hexText))
             {
-                MessageBox.Show("¸ê®Æ¤£§¹¾ã¡AµLªk¦sÀÉ¡I");
+                MessageBox.Show("è³‡æ–™ä¸å®Œæ•´ï¼Œç„¡æ³•å­˜æª”ï¼");
                 return;
             }
 
             try
             {
-                // ½T»{ Font ¸ê®Æ§¨¦s¦b
+                // ç¢ºèª Font è³‡æ–™å¤¾å­˜åœ¨
                 string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Font");
                 if (!Directory.Exists(folderPath))
                     Directory.CreateDirectory(folderPath);
 
-                // ¥Î®É¶¡·íÀÉ¦W
+                // ç”¨æ™‚é–“ç•¶æª”å
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 string baseFileName = $"Font_{timestamp}";
 
-                // Àx¦s .h ÀÉ
-                string hexFilePath = Path.Combine(folderPath, $"{baseFileName}.h");
-                File.WriteAllText(hexFilePath, hexText, Encoding.UTF8);
+                // å„²å­˜ .h æª”
+                string headerComment = $"// Character: {character}\r\n" +
+                       $"// Converter Type :{_currentConverterType}\r\n" +
+                       $"// Font: {fontName}\r\n" +
+                       $"// FontSize: {fontSize}\r\n" +
+                       $"// Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\r\n";
 
-                // ·Ç³Æ JSON ¼Æ¾Ú
+                string fileContent = headerComment + hexText;
+                string hexFilePath = Path.Combine(folderPath, $"{baseFileName}.h");
+                File.WriteAllText(hexFilePath, fileContent, Encoding.UTF8);
+
+                // æº–å‚™ JSON æ•¸æ“š
                 var fontData = new
                 {
                     Character = character,
@@ -518,11 +520,11 @@ namespace FontToLCD
                     FontSize = fontSize,
                     MatrixWidth = matrix.GetLength(1),
                     MatrixHeight = matrix.GetLength(0),
-                    MatrixData = ConvertMatrixToStringArray(matrix), // ±N¤Gºû°}¦CÂà¬°¦r¦ê°}¦C
+                    MatrixData = ConvertMatrixToStringArray(matrix), // å°‡äºŒç¶­é™£åˆ—è½‰ç‚ºå­—ä¸²é™£åˆ—
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
 
-                // Àx¦s .json ÀÉ
+                // å„²å­˜ .json æª”
                 string json = JsonSerializer.Serialize(fontData, new JsonSerializerOptions
                 {
                     WriteIndented = true,
@@ -532,15 +534,15 @@ namespace FontToLCD
                 string jsonFilePath = Path.Combine(folderPath, $"{baseFileName}.json");
                 File.WriteAllText(jsonFilePath, json, Encoding.UTF8);
 
-                MessageBox.Show($"¤w¦¨¥\¦sÀÉ¡I\n.h ÀÉ: {hexFilePath}\n.json ÀÉ: {jsonFilePath}");
+                MessageBox.Show($"å·²æˆåŠŸå­˜æª”ï¼\n.h æª”: {hexFilePath}\n.json æª”: {jsonFilePath}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"¦sÀÉ¥¢±Ñ: {ex.Message}", "¿ù»~", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"å­˜æª”å¤±æ•—: {ex.Message}", "éŒ¯èª¤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // »²§U¤èªk¡G±N¤Gºû°}¦CÂà´«¬°¦r¦ê°}¦C¡]¤è«K JSON Àx¦s¡^
+        // è¼”åŠ©æ–¹æ³•ï¼šå°‡äºŒç¶­é™£åˆ—è½‰æ›ç‚ºå­—ä¸²é™£åˆ—ï¼ˆæ–¹ä¾¿ JSON å„²å­˜ï¼‰
         private string[] ConvertMatrixToStringArray(int[,] matrix)
         {
             int rows = matrix.GetLength(0);
@@ -560,47 +562,357 @@ namespace FontToLCD
             return result;
         }
 
-        /*
-        private void SaveHexAndJson(int[,] matrix, string character, string fontName, float fontSize, string hexText)
+
+
+        //ç¬¬ä¸‰é ç°½ï¼šåˆä½µæª”æ¡ˆ
+
+        private string filePath1 = "";
+        private string filePath2 = "";
+        private string? mergedContent;
+
+        private void MergeFile_Click(object sender, EventArgs e)
         {
-            if (matrix == null || matrix.Length == 0 || string.IsNullOrWhiteSpace(hexText))
+            if (string.IsNullOrEmpty(filePath1) || string.IsNullOrEmpty(filePath2))
             {
-                MessageBox.Show("¸ê®Æ¤£§¹¾ã¡AµLªk¦sÀÉ¡I");
+                MessageBox.Show("è«‹å…ˆé¸æ“‡å…©å€‹æª”æ¡ˆå†åˆä½µï¼");
                 return;
             }
 
-            // ½T»{¸ê®Æ§¨
-            string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "font");
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-
-            // ¤é´Á®É¶¡ÀÉ¦W
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-            //H file
-            string hexFile = Path.Combine(folderPath, $"Font_{timestamp}.h");
-            File.WriteAllText(hexFile, Hex.Text);
-
-
-            // Json file
-            var fontData = new
+            try
             {
-                Character = character,
-                FontName = fontName,
-                FontSize = fontSize,
-                Matrix = matrix // ª½±µÀx¦s¤Gºû°}¦C
-            };
+                mergedContent = MergeFontFiles(filePath1, filePath2);
+                MergeFile3.Text = mergedContent;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("åˆä½µæ™‚ç™¼ç”ŸéŒ¯èª¤: " + ex.Message);
+            }
+        }
 
-            string json = JsonSerializer.Serialize(fontData, new JsonSerializerOptions { WriteIndented = true });
-            string jsonFile = Path.Combine(folderPath, $"Font_{timestamp}.json");
-            File.WriteAllText(jsonFile, json);
+        /// <summary>
+        /// å¾å…§å®¹ä¸­æå–ç´”åå…­é€²ä½é™£åˆ—è³‡æ–™ï¼ˆä¸å«å®£å‘Šå’Œçµå°¾åˆ†è™Ÿï¼‰ã€‚
+        /// </summary>
+        private string ExtractHexArrayDataOnly(string content)
+        {
+            var sb = new StringBuilder();
+            bool insideArray = false;
+            int bracketCount = 0; // ç”¨æ–¼è™•ç†å·¢ç‹€æ‹¬è™Ÿï¼Œå„˜ç®¡åœ¨é€™äº›å­—å‹æª”æ¡ˆä¸­é€šå¸¸ä¸æœƒæœ‰
 
-            MessageBox.Show($"¤w¦¨¥\¦sÀÉ¨ì¸ê®Æ§¨:\n{hexFile}\n{jsonFile}");
+            // ä»¥è¡Œåˆ†å‰²å…§å®¹
+            foreach (string line in content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                // æª¢æŸ¥æ˜¯å¦ç‚ºé™£åˆ—å®£å‘Šçš„èµ·å§‹è¡Œ
+                if (line.Contains("const uint8_t") && line.Contains("{"))
+                {
+                    insideArray = true;
+                    // æ‰¾åˆ°å¯¦éš›è³‡æ–™çš„é–‹é ­å¤§æ‹¬è™Ÿ
+                    int dataStart = line.IndexOf('{');
+                    if (dataStart >= 0)
+                    {
+                        // å¾é–‹é ­å¤§æ‹¬è™Ÿå¾Œé–‹å§‹æ“·å–
+                        string part = line.Substring(dataStart + 1);
+                        sb.Append(part);
+                        bracketCount += part.Count(c => c == '{'); // è¨ˆç®—é–‹é ­å¤§æ‹¬è™Ÿæ•¸é‡
+                        bracketCount -= part.Count(c => c == '}'); // æ¸›å»çµå°¾å¤§æ‹¬è™Ÿæ•¸é‡
+                    }
+                    continue; // è·³éå®£å‘Šè¡Œæœ¬èº«
+                }
+
+                // å¦‚æœåœ¨é™£åˆ—å…§éƒ¨
+                if (insideArray)
+                {
+                    sb.Append(line); // è¿½åŠ ç•¶å‰è¡Œ
+                    bracketCount += line.Count(c => c == '{');
+                    bracketCount -= line.Count(c => c == '}');
+
+                    // å¦‚æœæ‹¬è™Ÿè¨ˆæ•¸ç‚º0æˆ–è² æ•¸ï¼Œä¸”æ‰¾åˆ°é™£åˆ—çš„çµå°¾
+                    if (bracketCount <= 0 && line.Contains("};")) // é™£åˆ—å·²é—œé–‰
+                    {
+                        // ç§»é™¤çµå°¾çš„ "};" å’Œå…¶å¾Œçš„æ‰€æœ‰å…§å®¹
+                        int dataEnd = sb.ToString().LastIndexOf("};");
+                        if (dataEnd >= 0)
+                        {
+                            sb.Length = dataEnd;
+                        }
+                        break; // åœæ­¢è®€å–
+                    }
+                }
+            }
+            // æ¸…é™¤é–‹é ­/çµå°¾çš„æ‹¬è™Ÿã€åˆ†è™Ÿã€æ›è¡Œç¬¦è™Ÿå’Œç©ºç™½å­—å…ƒ
+            return sb.ToString().Trim('{', '}', ';', '\r', '\n', ' ');
+        }
+
+        /// <summary>
+        /// å¾å…§å®¹ä¸­æå–é™£åˆ—ç¶­åº¦ (ä¾‹å¦‚ "[X][Y]")ã€‚
+        /// </summary>
+        private string ExtractArrayDimensions(string content)
+        {
+            using (StringReader sr = new StringReader(content))
+            {
+                string? line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    // æ‰¾åˆ°åŒ…å« "const uint8_t" çš„è¡Œ
+                    if (line.Contains("const uint8_t"))
+                    {
+                        // æ‰¾åˆ° "=" çš„ä½ç½®ï¼Œå¦‚æœæ²’æœ‰å‰‡å–æ•´è¡Œé•·åº¦
+                        int arrayNameEnd = line.IndexOf('=');
+                        if (arrayNameEnd == -1) arrayNameEnd = line.Length;
+
+                        // æ“·å–å®£å‘Šéƒ¨åˆ† (åˆ° "=" ä¹‹å‰)
+                        string declarationPart = line.Substring(0, arrayNameEnd);
+                        int firstBracket = declarationPart.IndexOf('[');
+                        if (firstBracket >= 0)
+                        {
+                            // æ“·å–å¾ç¬¬ä¸€å€‹ '[' åˆ°æœ€å¾Œä¸€å€‹ ']' çš„æ‰€æœ‰å…§å®¹
+                            int lastBracket = declarationPart.LastIndexOf(']');
+                            if (lastBracket > firstBracket)
+                            {
+                                return declarationPart.Substring(firstBracket, lastBracket - firstBracket + 1);
+                            }
+                        }
+                    }
+                }
+            }
+            return string.Empty; // æœªæ‰¾åˆ°ç¶­åº¦
+        }
+
+        /// <summary>
+        /// æ“·å–é™£åˆ—è³‡æ–™ (å»æ‰å‰é¢çš„è¨»è§£)
+        /// </summary>
+        private string ExtractArrayData(string content)
+        {
+            int idx = content.IndexOf("const uint8_t");
+            if (idx >= 0)
+            {
+                return content.Substring(idx).Trim();
+            }
+            return string.Empty;
+        }
+
+
+        private string MergeFontFiles(string file1Path, string file2Path)
+        {
+            string merged;
+
+            try
+            {
+                string content1 = File.ReadAllText(file1Path, Encoding.UTF8);
+                string content2 = File.ReadAllText(file2Path, Encoding.UTF8);
+
+                // å¾æª”æ¡ˆé ­éƒ¨çš„è¨»è§£æŠ“å‡ºè³‡è¨Š
+                string Character1 = ExtractMeta_inside(content1, "Character").Trim();
+                string Character2 = ExtractMeta_inside(content2, "Character").Trim();
+
+                string type1 = ExtractMeta_inside(content1, "Converter Type");
+                string type2 = ExtractMeta_inside(content2, "Converter Type");
+
+                string font1 = ExtractMeta_inside(content1, "Font");
+                string font2 = ExtractMeta_inside(content2, "Font");
+
+                string size1 = ExtractMeta_inside(content1, "FontSize");
+                string size2 = ExtractMeta_inside(content2, "FontSize");
+
+                // åˆ¤æ–·æ˜¯å¦ä¸€è‡´
+                if (type1 != type2 || font1 != font2 || size1 != size2)
+                {
+                    throw new Exception($"å…©å€‹å­—å‹æª”æ¡ˆçš„å±¬æ€§ä¸ç›¸åŒï¼");
+                }
+                if (Character1 == Character2)
+                {
+                    throw new Exception("å…©å€‹å­—å‹æª”æ¡ˆçš„å­—å…ƒç›¸åŒï¼");
+                }
+
+                // å»æ‰ headerï¼Œåªä¿ç•™é™£åˆ—è³‡æ–™
+                string arrayData1 = ExtractArrayData(content1);
+                string arrayData2 = ExtractArrayData(content2);
+
+                // åˆä½µæª”æ¡ˆå…§å®¹
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"// åˆä½µæª”æ¡ˆ");
+                sb.AppendLine($"// Converter Type: {type1}");
+                sb.AppendLine($"// Font: {font1}");
+                sb.AppendLine($"// FontSize: {size1}");
+                sb.AppendLine($"// Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                sb.AppendLine();
+
+                sb.AppendLine(arrayData1.Trim());
+                sb.AppendLine();
+                sb.AppendLine(arrayData2.Trim());
+
+                //File.WriteAllText(outputPath, merged.ToString(), Encoding.UTF8);
+
+                merged = sb.ToString();
+
+                MessageBox.Show($"æª”æ¡ˆåˆä½µå®Œæˆï¼š");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"åˆä½µå¤±æ•—: {ex.Message}");
+                merged = "";
+            }
+            return merged;
+        }
+
+        private void ReadFile1_Click(object sender, EventArgs e)
+        {
+            ReadFilesAndPreview(File1, labelFile1);
+        }
+
+        private void ReadFile2_Click(object sender, EventArgs e)
+        {
+            ReadFilesAndPreview(File2, labelFile2);
+        }
+
+        private void ReadFilesAndPreview(TextBox fileTextBox, Label fileLabel)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
+                ofd.Multiselect = true;
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    _selectedFiles = ofd.FileNames;
+                    if (_selectedFiles.Length > 0)
+                    {
+                        fileLabel.Text = string.Join(", ", _selectedFiles.Select(f => Path.GetFileName(f)));
+
+                        // é è¦½ç¬¬ä¸€å€‹æª”æ¡ˆå…§å®¹
+                        try
+                        {
+                            string content = File.ReadAllText(_selectedFiles[0], Encoding.UTF8);
+                            fileTextBox.Text = content;
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"è®€å–æª”æ¡ˆå¤±æ•—: {ex.Message}");
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+        private void ReadFile1_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    filePath1 = ofd.FileName;
+                    //File1.Text = filePath1; // é¡¯ç¤ºæª”å
+
+                    try
+                    {
+                        string content = File.ReadAllText(filePath1, Encoding.UTF8);
+                        // ä¹Ÿå¯ä»¥é¡¯ç¤ºå…§å®¹åœ¨å¦ä¸€å€‹ TextBox æˆ– RichTextBoxï¼Œå¦‚æœä½ æƒ³é è¦½ HEX
+                        File1.Text = content;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"è®€å–æª”æ¡ˆå¤±æ•—: {ex.Message}");
+                    }
+
+                    labelFile1.Text = Path.GetFileName(filePath1); // åªé¡¯ç¤ºæª”å
+                }
+            }
         }
         */
+        /*
+        private void ReadFile2_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    filePath2 = ofd.FileName;
+                    //File1.Text = filePath2; // é¡¯ç¤ºæª”å
+                    try
+                    {
+                        string content = File.ReadAllText(filePath2, Encoding.UTF8);
+                        // ä¹Ÿå¯ä»¥é¡¯ç¤ºå…§å®¹åœ¨å¦ä¸€å€‹ TextBox æˆ– RichTextBoxï¼Œå¦‚æœä½ æƒ³é è¦½ HEX
+                        // File1Content.Text = content;
+                        File2.Text = content;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"è®€å–æª”æ¡ˆå¤±æ•—: {ex.Message}");
+                    }
+                    labelFile2.Text = Path.GetFileName(filePath2); // åªé¡¯ç¤ºæª”å
+                }
+            }
+        }
+        */
+
+
+
+        private void SafeMergeFile_Click(object sender, EventArgs e)
+        {
+
+            // 1. å»ºç«‹æˆ‘å€‘æ–°å®¶çš„ç‰©ä»¶
+            var generator = new FontGenerator();
+
+            try
+            {
+                // 2. å‘¼å«æ–°å®¶çš„æ–¹æ³•ï¼Œä¸¦æŠŠæª”æ¡ˆè·¯å¾‘å‚³çµ¦å®ƒ
+                //    _selectedFiles æ˜¯æ‚¨åŸæœ¬å°±æœ‰çš„ã€å„²å­˜äº†æª”æ¡ˆè·¯å¾‘çš„æˆå“¡è®Šæ•¸
+                string mergedContent = generator.MergeFontFiles(_selectedFiles);
+
+                // 3. è™•ç†æˆåŠŸå¾Œçš„çµæœ (æ›´æ–° UI)
+                MergeFile3.Text = mergedContent;
+                MessageBox.Show($"å·²æˆåŠŸåˆä½µï¼"); // æˆåŠŸè¨Šæ¯ç”±ä¸»ç¨‹å¼é¡¯ç¤º
+            }
+            catch (Exception ex)
+            {
+                // 4. è™•ç†å¤±æ•—æ™‚çš„éŒ¯èª¤ (é¡¯ç¤ºéŒ¯èª¤è¨Šæ¯)
+                MessageBox.Show($"åˆä½µå¤±æ•—: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// å¾è¨»è§£ä¸­å–å‡ºæŒ‡å®šæ¬„ä½
+        /// </summary>
+        private string ExtractMeta_inside(string content, string key)
+        {
+            using (StringReader sr = new StringReader(content))
+            {
+                string? line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line.Contains(key))
+                    {
+                        int idx = line.IndexOf(':');
+                        if (idx >= 0 && idx + 1 < line.Length)
+                            return line.Substring(idx + 1).Trim();
+                    }
+                }
+            }
+            return string.Empty;
+        }
+
+        private string ExtractHexArray(string content)
+        {
+            var sb = new StringBuilder();
+            bool insideArray = false;
+
+            foreach (string line in content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                if (line.Contains("const uint8_t") && line.Contains("{"))
+                    insideArray = true;
+
+                if (insideArray)
+                    sb.AppendLine(line);
+
+                if (insideArray && line.Contains("};"))
+                    break;
+            }
+            return sb.ToString();
+        }
+
     }
     //public partial class FontToLCD : Form end
-
-
 
 }

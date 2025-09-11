@@ -60,6 +60,19 @@
             label6 = new Label();
             GridHeightNumeric = new NumericUpDown();
             GridWidthNumeric = new NumericUpDown();
+            MergeFontH = new TabPage();
+            SafeMergeFile = new Button();
+            panel5 = new Panel();
+            MergeFile3 = new TextBox();
+            MergeFile = new Button();
+            panel4 = new Panel();
+            File2 = new TextBox();
+            labelFile2 = new Label();
+            ReadFile2 = new Button();
+            panel3 = new Panel();
+            File1 = new TextBox();
+            ReadFile1 = new Button();
+            labelFile1 = new Label();
             ((System.ComponentModel.ISupportInitialize)BitView).BeginInit();
             panel1.SuspendLayout();
             scrollPanelForBitView.SuspendLayout();
@@ -71,6 +84,10 @@
             ((System.ComponentModel.ISupportInitialize)DesignCanvas).BeginInit();
             ((System.ComponentModel.ISupportInitialize)GridHeightNumeric).BeginInit();
             ((System.ComponentModel.ISupportInitialize)GridWidthNumeric).BeginInit();
+            MergeFontH.SuspendLayout();
+            panel5.SuspendLayout();
+            panel4.SuspendLayout();
+            panel3.SuspendLayout();
             SuspendLayout();
             // 
             // FontType
@@ -132,19 +149,19 @@
             // 
             // Hex
             // 
-            Hex.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            Hex.Location = new Point(544, 129);
+            Hex.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            Hex.Location = new Point(488, 129);
             Hex.Margin = new Padding(2);
             Hex.Multiline = true;
             Hex.Name = "Hex";
             Hex.ReadOnly = true;
             Hex.ScrollBars = ScrollBars.Both;
-            Hex.Size = new Size(348, 410);
+            Hex.Size = new Size(404, 410);
             Hex.TabIndex = 8;
             // 
             // button1
             // 
-            button1.Location = new Point(791, 94);
+            button1.Location = new Point(488, 94);
             button1.Margin = new Padding(2);
             button1.Name = "button1";
             button1.Size = new Size(73, 23);
@@ -231,7 +248,7 @@
             scrollPanelForBitView.Location = new Point(0, 129);
             scrollPanelForBitView.Margin = new Padding(2);
             scrollPanelForBitView.Name = "scrollPanelForBitView";
-            scrollPanelForBitView.Size = new Size(538, 409);
+            scrollPanelForBitView.Size = new Size(487, 409);
             scrollPanelForBitView.TabIndex = 12;
             // 
             // array_Tran
@@ -239,11 +256,12 @@
             array_Tran.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             array_Tran.Controls.Add(Font_Tran);
             array_Tran.Controls.Add(DotFontDesign);
+            array_Tran.Controls.Add(MergeFontH);
             array_Tran.Location = new Point(5, 9);
             array_Tran.Margin = new Padding(2);
             array_Tran.Name = "array_Tran";
             array_Tran.SelectedIndex = 0;
-            array_Tran.Size = new Size(915, 600);
+            array_Tran.Size = new Size(933, 600);
             array_Tran.TabIndex = 11;
             // 
             // Font_Tran
@@ -253,7 +271,7 @@
             Font_Tran.Margin = new Padding(2);
             Font_Tran.Name = "Font_Tran";
             Font_Tran.Padding = new Padding(2);
-            Font_Tran.Size = new Size(907, 572);
+            Font_Tran.Size = new Size(925, 572);
             Font_Tran.TabIndex = 0;
             Font_Tran.Text = "字元轉換";
             Font_Tran.UseVisualStyleBackColor = true;
@@ -265,7 +283,7 @@
             DotFontDesign.Margin = new Padding(2);
             DotFontDesign.Name = "DotFontDesign";
             DotFontDesign.Padding = new Padding(2);
-            DotFontDesign.Size = new Size(907, 572);
+            DotFontDesign.Size = new Size(925, 572);
             DotFontDesign.TabIndex = 1;
             DotFontDesign.Text = "字型設計";
             DotFontDesign.UseVisualStyleBackColor = true;
@@ -287,7 +305,7 @@
             panel2.Location = new Point(0, 2);
             panel2.Margin = new Padding(2);
             panel2.Name = "panel2";
-            panel2.Size = new Size(905, 546);
+            panel2.Size = new Size(891, 546);
             panel2.TabIndex = 0;
             // 
             // SafeCreateFont
@@ -337,7 +355,7 @@
             DesignHexOutput.Name = "DesignHexOutput";
             DesignHexOutput.ReadOnly = true;
             DesignHexOutput.ScrollBars = ScrollBars.Both;
-            DesignHexOutput.Size = new Size(323, 460);
+            DesignHexOutput.Size = new Size(309, 460);
             DesignHexOutput.TabIndex = 14;
             // 
             // scrollPanelForDesignCanvas
@@ -409,11 +427,149 @@
             GridWidthNumeric.Size = new Size(117, 23);
             GridWidthNumeric.TabIndex = 0;
             // 
+            // MergeFontH
+            // 
+            MergeFontH.Controls.Add(SafeMergeFile);
+            MergeFontH.Controls.Add(panel5);
+            MergeFontH.Controls.Add(panel4);
+            MergeFontH.Controls.Add(panel3);
+            MergeFontH.Location = new Point(4, 24);
+            MergeFontH.Name = "MergeFontH";
+            MergeFontH.Padding = new Padding(3);
+            MergeFontH.Size = new Size(925, 572);
+            MergeFontH.TabIndex = 2;
+            MergeFontH.Text = "合併字型檔";
+            MergeFontH.UseVisualStyleBackColor = true;
+            // 
+            // SafeMergeFile
+            // 
+            SafeMergeFile.Location = new Point(9, 10);
+            SafeMergeFile.Name = "SafeMergeFile";
+            SafeMergeFile.Size = new Size(75, 23);
+            SafeMergeFile.TabIndex = 9;
+            SafeMergeFile.Text = "存檔";
+            SafeMergeFile.UseVisualStyleBackColor = true;
+            SafeMergeFile.Click += SafeMergeFile_Click;
+            // 
+            // panel5
+            // 
+            panel5.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel5.Controls.Add(MergeFile3);
+            panel5.Controls.Add(MergeFile);
+            panel5.Location = new Point(618, 39);
+            panel5.Name = "panel5";
+            panel5.Size = new Size(300, 530);
+            panel5.TabIndex = 8;
+            // 
+            // MergeFile3
+            // 
+            MergeFile3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            MergeFile3.Location = new Point(3, 57);
+            MergeFile3.Multiline = true;
+            MergeFile3.Name = "MergeFile3";
+            MergeFile3.ReadOnly = true;
+            MergeFile3.ScrollBars = ScrollBars.Both;
+            MergeFile3.Size = new Size(294, 470);
+            MergeFile3.TabIndex = 1;
+            // 
+            // MergeFile
+            // 
+            MergeFile.Location = new Point(20, 11);
+            MergeFile.Name = "MergeFile";
+            MergeFile.Size = new Size(75, 23);
+            MergeFile.TabIndex = 0;
+            MergeFile.Text = "合併檔案";
+            MergeFile.UseVisualStyleBackColor = true;
+            MergeFile.Click += MergeFile_Click;
+            // 
+            // panel4
+            // 
+            panel4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel4.Controls.Add(File2);
+            panel4.Controls.Add(labelFile2);
+            panel4.Controls.Add(ReadFile2);
+            panel4.Location = new Point(312, 39);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(300, 530);
+            panel4.TabIndex = 7;
+            // 
+            // File2
+            // 
+            File2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            File2.Location = new Point(3, 57);
+            File2.Multiline = true;
+            File2.Name = "File2";
+            File2.ReadOnly = true;
+            File2.ScrollBars = ScrollBars.Both;
+            File2.Size = new Size(294, 470);
+            File2.TabIndex = 5;
+            // 
+            // labelFile2
+            // 
+            labelFile2.AutoSize = true;
+            labelFile2.Location = new Point(3, 39);
+            labelFile2.Name = "labelFile2";
+            labelFile2.Size = new Size(38, 15);
+            labelFile2.TabIndex = 3;
+            labelFile2.Text = "檔案2";
+            // 
+            // ReadFile2
+            // 
+            ReadFile2.Location = new Point(3, 11);
+            ReadFile2.Name = "ReadFile2";
+            ReadFile2.Size = new Size(75, 23);
+            ReadFile2.TabIndex = 1;
+            ReadFile2.Text = "讀取檔案2";
+            ReadFile2.UseVisualStyleBackColor = true;
+            ReadFile2.Click += ReadFile2_Click;
+            // 
+            // panel3
+            // 
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel3.AutoScroll = true;
+            panel3.Controls.Add(File1);
+            panel3.Controls.Add(ReadFile1);
+            panel3.Controls.Add(labelFile1);
+            panel3.Location = new Point(6, 39);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(300, 530);
+            panel3.TabIndex = 6;
+            // 
+            // File1
+            // 
+            File1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            File1.Location = new Point(3, 57);
+            File1.Multiline = true;
+            File1.Name = "File1";
+            File1.ReadOnly = true;
+            File1.ScrollBars = ScrollBars.Both;
+            File1.Size = new Size(294, 470);
+            File1.TabIndex = 4;
+            // 
+            // ReadFile1
+            // 
+            ReadFile1.Location = new Point(3, 3);
+            ReadFile1.Name = "ReadFile1";
+            ReadFile1.Size = new Size(75, 23);
+            ReadFile1.TabIndex = 0;
+            ReadFile1.Text = "讀取檔案1";
+            ReadFile1.UseVisualStyleBackColor = true;
+            ReadFile1.Click += ReadFile1_Click;
+            // 
+            // labelFile1
+            // 
+            labelFile1.AutoSize = true;
+            labelFile1.Location = new Point(3, 39);
+            labelFile1.Name = "labelFile1";
+            labelFile1.Size = new Size(38, 15);
+            labelFile1.TabIndex = 2;
+            labelFile1.Text = "檔案1";
+            // 
             // FontToLCD
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(923, 611);
+            ClientSize = new Size(941, 611);
             Controls.Add(array_Tran);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2);
@@ -434,6 +590,13 @@
             ((System.ComponentModel.ISupportInitialize)DesignCanvas).EndInit();
             ((System.ComponentModel.ISupportInitialize)GridHeightNumeric).EndInit();
             ((System.ComponentModel.ISupportInitialize)GridWidthNumeric).EndInit();
+            MergeFontH.ResumeLayout(false);
+            panel5.ResumeLayout(false);
+            panel5.PerformLayout();
+            panel4.ResumeLayout(false);
+            panel4.PerformLayout();
+            panel3.ResumeLayout(false);
+            panel3.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -470,5 +633,18 @@
         private ComboBox Design_HEX_Type;
         private Button SafeFontArray;
         private Button SafeCreateFont;
+        private TabPage MergeFontH;
+        private Button ReadFile2;
+        private Button ReadFile1;
+        private Label labelFile2;
+        private Label labelFile1;
+        private Panel panel5;
+        private Panel panel4;
+        private TextBox File2;
+        private Panel panel3;
+        private TextBox File1;
+        private TextBox MergeFile3;
+        private Button MergeFile;
+        private Button SafeMergeFile;
     }
 }
