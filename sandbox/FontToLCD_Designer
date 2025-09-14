@@ -37,7 +37,7 @@
             BitView = new PictureBox();
             label4 = new Label();
             Hex = new TextBox();
-            SingleLetterArray = new Button();
+            button1 = new Button();
             panel1 = new Panel();
             SafeFontArray = new Button();
             label2 = new Label();
@@ -87,8 +87,8 @@
             Character = new Label();
             SaveDotFont = new Button();
             splitContainer1 = new SplitContainer();
-            DotFontReview = new PictureBox();
             CharacterListBox = new ListBox();
+            DotFontReview = new PictureBox();
             FullFontArray = new TextBox();
             DotFontGen = new Button();
             label10 = new Label();
@@ -121,39 +121,44 @@
             // FontType
             // 
             FontType.FormattingEnabled = true;
-            FontType.Location = new Point(12, 49);
+            FontType.Location = new Point(9, 39);
+            FontType.Margin = new Padding(2);
             FontType.Name = "FontType";
-            FontType.Size = new Size(208, 27);
+            FontType.Size = new Size(163, 23);
             FontType.TabIndex = 0;
             // 
             // Imput
             // 
-            Imput.Location = new Point(12, 117);
+            Imput.Location = new Point(9, 92);
+            Imput.Margin = new Padding(2);
             Imput.Name = "Imput";
-            Imput.Size = new Size(457, 27);
+            Imput.Size = new Size(356, 23);
             Imput.TabIndex = 1;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(69, 27);
+            label1.Location = new Point(54, 21);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(69, 19);
+            label1.Size = new Size(55, 15);
             label1.TabIndex = 3;
             label1.Text = "選擇字型";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(12, 94);
+            label3.Location = new Point(9, 74);
+            label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
-            label3.Size = new Size(69, 19);
+            label3.Size = new Size(55, 15);
             label3.TabIndex = 5;
             label3.Text = "輸入字元";
             // 
             // BitView
             // 
-            BitView.Location = new Point(12, 3);
+            BitView.Location = new Point(9, 2);
+            BitView.Margin = new Padding(2);
             BitView.Name = "BitView";
             BitView.Size = new Size(466, 405);
             BitView.SizeMode = PictureBoxSizeMode.AutoSize;
@@ -163,31 +168,34 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(867, 124);
+            label4.Location = new Point(674, 98);
+            label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
-            label4.Size = new Size(39, 19);
+            label4.Size = new Size(31, 15);
             label4.TabIndex = 7;
             label4.Text = "預覽";
             // 
             // Hex
             // 
             Hex.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            Hex.Location = new Point(627, 163);
+            Hex.Location = new Point(488, 129);
+            Hex.Margin = new Padding(2);
             Hex.Multiline = true;
             Hex.Name = "Hex";
             Hex.ReadOnly = true;
             Hex.ScrollBars = ScrollBars.Both;
-            Hex.Size = new Size(518, 518);
+            Hex.Size = new Size(404, 410);
             Hex.TabIndex = 8;
             // 
-            // SingleLetterArray
+            // button1
             // 
-            SingleLetterArray.Location = new Point(627, 119);
-            SingleLetterArray.Name = "SingleLetterArray";
-            SingleLetterArray.Size = new Size(94, 29);
-            SingleLetterArray.TabIndex = 9;
-            SingleLetterArray.Text = "生成矩陣";
-            SingleLetterArray.UseVisualStyleBackColor = true;
+            button1.Location = new Point(488, 94);
+            button1.Margin = new Padding(2);
+            button1.Name = "button1";
+            button1.Size = new Size(73, 23);
+            button1.TabIndex = 9;
+            button1.Text = "生成矩陣";
+            button1.UseVisualStyleBackColor = true;
             // 
             // panel1
             // 
@@ -203,20 +211,20 @@
             panel1.Controls.Add(FontSize);
             panel1.Controls.Add(FontType);
             panel1.Controls.Add(Imput);
-            panel1.Controls.Add(SingleLetterArray);
+            panel1.Controls.Add(button1);
             panel1.Controls.Add(Hex);
             panel1.Controls.Add(scrollPanelForBitView);
-            panel1.Location = new Point(3, 6);
+            panel1.Location = new Point(2, 5);
+            panel1.Margin = new Padding(2);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1160, 716);
+            panel1.Size = new Size(903, 566);
             panel1.TabIndex = 10;
             // 
             // SafeFontArray
             // 
-            SafeFontArray.Location = new Point(1014, 48);
-            SafeFontArray.Margin = new Padding(4);
+            SafeFontArray.Location = new Point(789, 38);
             SafeFontArray.Name = "SafeFontArray";
-            SafeFontArray.Size = new Size(96, 29);
+            SafeFontArray.Size = new Size(75, 23);
             SafeFontArray.TabIndex = 15;
             SafeFontArray.Text = "存檔";
             SafeFontArray.UseVisualStyleBackColor = true;
@@ -224,35 +232,39 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(561, 19);
+            label2.Location = new Point(436, 15);
+            label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(63, 19);
+            label2.Size = new Size(51, 15);
             label2.TabIndex = 14;
             label2.Text = "hex類型";
             // 
             // HEX_Type
             // 
             HEX_Type.FormattingEnabled = true;
-            HEX_Type.Location = new Point(513, 49);
+            HEX_Type.Location = new Point(399, 39);
+            HEX_Type.Margin = new Padding(2);
             HEX_Type.Name = "HEX_Type";
-            HEX_Type.Size = new Size(178, 27);
+            HEX_Type.Size = new Size(139, 23);
             HEX_Type.TabIndex = 13;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(273, 24);
+            label5.Location = new Point(212, 19);
+            label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
-            label5.Size = new Size(93, 19);
+            label5.Size = new Size(75, 15);
             label5.TabIndex = 11;
             label5.Text = "字型大小(pt)";
             // 
             // FontSize
             // 
             FontSize.FormattingEnabled = true;
-            FontSize.Location = new Point(261, 49);
+            FontSize.Location = new Point(203, 39);
+            FontSize.Margin = new Padding(2);
             FontSize.Name = "FontSize";
-            FontSize.Size = new Size(151, 27);
+            FontSize.Size = new Size(118, 23);
             FontSize.TabIndex = 10;
             // 
             // scrollPanelForBitView
@@ -261,9 +273,10 @@
             scrollPanelForBitView.AutoScroll = true;
             scrollPanelForBitView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             scrollPanelForBitView.Controls.Add(BitView);
-            scrollPanelForBitView.Location = new Point(0, 163);
+            scrollPanelForBitView.Location = new Point(0, 129);
+            scrollPanelForBitView.Margin = new Padding(2);
             scrollPanelForBitView.Name = "scrollPanelForBitView";
-            scrollPanelForBitView.Size = new Size(626, 518);
+            scrollPanelForBitView.Size = new Size(487, 409);
             scrollPanelForBitView.TabIndex = 12;
             // 
             // array_Tran
@@ -273,19 +286,21 @@
             array_Tran.Controls.Add(DotFontDesign);
             array_Tran.Controls.Add(MergeFontH);
             array_Tran.Controls.Add(Fontlib);
-            array_Tran.Location = new Point(6, 11);
+            array_Tran.Location = new Point(5, 9);
+            array_Tran.Margin = new Padding(2);
             array_Tran.Name = "array_Tran";
             array_Tran.SelectedIndex = 0;
-            array_Tran.Size = new Size(1200, 760);
+            array_Tran.Size = new Size(933, 600);
             array_Tran.TabIndex = 11;
             // 
             // Font_Tran
             // 
             Font_Tran.Controls.Add(panel1);
-            Font_Tran.Location = new Point(4, 28);
+            Font_Tran.Location = new Point(4, 24);
+            Font_Tran.Margin = new Padding(2);
             Font_Tran.Name = "Font_Tran";
-            Font_Tran.Padding = new Padding(3);
-            Font_Tran.Size = new Size(1192, 728);
+            Font_Tran.Padding = new Padding(2);
+            Font_Tran.Size = new Size(925, 572);
             Font_Tran.TabIndex = 0;
             Font_Tran.Text = "字元轉換";
             Font_Tran.UseVisualStyleBackColor = true;
@@ -293,10 +308,11 @@
             // DotFontDesign
             // 
             DotFontDesign.Controls.Add(panel2);
-            DotFontDesign.Location = new Point(4, 28);
+            DotFontDesign.Location = new Point(4, 24);
+            DotFontDesign.Margin = new Padding(2);
             DotFontDesign.Name = "DotFontDesign";
-            DotFontDesign.Padding = new Padding(3);
-            DotFontDesign.Size = new Size(1192, 728);
+            DotFontDesign.Padding = new Padding(2);
+            DotFontDesign.Size = new Size(925, 572);
             DotFontDesign.TabIndex = 1;
             DotFontDesign.Text = "字型設計";
             DotFontDesign.UseVisualStyleBackColor = true;
@@ -304,7 +320,6 @@
             // panel2
             // 
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            panel2.AutoSize = true;
             panel2.Controls.Add(SafeCreateFont);
             panel2.Controls.Add(label8);
             panel2.Controls.Add(Design_HEX_Type);
@@ -316,17 +331,17 @@
             panel2.Controls.Add(label6);
             panel2.Controls.Add(GridHeightNumeric);
             panel2.Controls.Add(GridWidthNumeric);
-            panel2.Location = new Point(0, 3);
+            panel2.Location = new Point(0, 2);
+            panel2.Margin = new Padding(2);
             panel2.Name = "panel2";
-            panel2.Size = new Size(1188, 725);
+            panel2.Size = new Size(891, 546);
             panel2.TabIndex = 0;
             // 
             // SafeCreateFont
             // 
-            SafeCreateFont.Location = new Point(891, 13);
-            SafeCreateFont.Margin = new Padding(4);
+            SafeCreateFont.Location = new Point(693, 10);
             SafeCreateFont.Name = "SafeCreateFont";
-            SafeCreateFont.Size = new Size(96, 29);
+            SafeCreateFont.Size = new Size(75, 23);
             SafeCreateFont.TabIndex = 18;
             SafeCreateFont.Text = "存檔";
             SafeCreateFont.UseVisualStyleBackColor = true;
@@ -334,25 +349,28 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(688, 18);
+            label8.Location = new Point(535, 14);
+            label8.Margin = new Padding(2, 0, 2, 0);
             label8.Name = "label8";
-            label8.Size = new Size(65, 19);
+            label8.Size = new Size(53, 15);
             label8.TabIndex = 17;
             label8.Text = "Hex格式";
             // 
             // Design_HEX_Type
             // 
             Design_HEX_Type.FormattingEnabled = true;
-            Design_HEX_Type.Location = new Point(642, 41);
+            Design_HEX_Type.Location = new Point(499, 32);
+            Design_HEX_Type.Margin = new Padding(2);
             Design_HEX_Type.Name = "Design_HEX_Type";
-            Design_HEX_Type.Size = new Size(151, 27);
+            Design_HEX_Type.Size = new Size(118, 23);
             Design_HEX_Type.TabIndex = 16;
             // 
             // GenerateHexButton
             // 
-            GenerateHexButton.Location = new Point(870, 53);
+            GenerateHexButton.Location = new Point(677, 42);
+            GenerateHexButton.Margin = new Padding(2);
             GenerateHexButton.Name = "GenerateHexButton";
-            GenerateHexButton.Size = new Size(143, 29);
+            GenerateHexButton.Size = new Size(111, 23);
             GenerateHexButton.TabIndex = 15;
             GenerateHexButton.Text = "產生/更新 HEX";
             GenerateHexButton.UseVisualStyleBackColor = true;
@@ -360,41 +378,44 @@
             // DesignHexOutput
             // 
             DesignHexOutput.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            DesignHexOutput.Location = new Point(769, 82);
+            DesignHexOutput.Location = new Point(570, 65);
+            DesignHexOutput.Margin = new Padding(2);
             DesignHexOutput.Multiline = true;
             DesignHexOutput.Name = "DesignHexOutput";
             DesignHexOutput.ReadOnly = true;
             DesignHexOutput.ScrollBars = ScrollBars.Both;
-            DesignHexOutput.Size = new Size(402, 615);
+            DesignHexOutput.Size = new Size(309, 460);
             DesignHexOutput.TabIndex = 14;
             // 
             // scrollPanelForDesignCanvas
             // 
             scrollPanelForDesignCanvas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             scrollPanelForDesignCanvas.AutoScroll = true;
-            scrollPanelForDesignCanvas.AutoScrollMargin = new Size(5, 5);
-            scrollPanelForDesignCanvas.AutoScrollMinSize = new Size(5, 5);
             scrollPanelForDesignCanvas.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             scrollPanelForDesignCanvas.Controls.Add(DesignCanvas);
-            scrollPanelForDesignCanvas.Location = new Point(6, 82);
+            scrollPanelForDesignCanvas.Location = new Point(5, 65);
+            scrollPanelForDesignCanvas.Margin = new Padding(2);
             scrollPanelForDesignCanvas.Name = "scrollPanelForDesignCanvas";
-            scrollPanelForDesignCanvas.Size = new Size(757, 637);
+            scrollPanelForDesignCanvas.Size = new Size(561, 477);
             scrollPanelForDesignCanvas.TabIndex = 13;
             // 
             // DesignCanvas
             // 
             DesignCanvas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            DesignCanvas.Location = new Point(3, 13);
+            DesignCanvas.Location = new Point(2, 10);
+            DesignCanvas.Margin = new Padding(2);
             DesignCanvas.Name = "DesignCanvas";
-            DesignCanvas.Size = new Size(744, 624);
+            DesignCanvas.Size = new Size(686, 602);
+            DesignCanvas.SizeMode = PictureBoxSizeMode.AutoSize;
             DesignCanvas.TabIndex = 6;
             DesignCanvas.TabStop = false;
             // 
             // CreateGridButton
             // 
-            CreateGridButton.Location = new Point(374, 46);
+            CreateGridButton.Location = new Point(291, 36);
+            CreateGridButton.Margin = new Padding(2);
             CreateGridButton.Name = "CreateGridButton";
-            CreateGridButton.Size = new Size(152, 29);
+            CreateGridButton.Size = new Size(118, 23);
             CreateGridButton.TabIndex = 4;
             CreateGridButton.Text = "新建/清除畫布";
             CreateGridButton.UseVisualStyleBackColor = true;
@@ -402,40 +423,38 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(224, 27);
+            label7.Location = new Point(174, 21);
+            label7.Margin = new Padding(2, 0, 2, 0);
             label7.Name = "label7";
-            label7.Size = new Size(39, 19);
+            label7.Size = new Size(31, 15);
             label7.TabIndex = 3;
             label7.Text = "高度";
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(58, 27);
+            label6.Location = new Point(45, 21);
+            label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
-            label6.Size = new Size(39, 19);
+            label6.Size = new Size(31, 15);
             label6.TabIndex = 2;
             label6.Text = "寬度";
             // 
             // GridHeightNumeric
             // 
-            GridHeightNumeric.Location = new Point(175, 49);
-            GridHeightNumeric.Maximum = new decimal(new int[] { 1024, 0, 0, 0 });
-            GridHeightNumeric.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            GridHeightNumeric.Location = new Point(136, 39);
+            GridHeightNumeric.Margin = new Padding(2);
             GridHeightNumeric.Name = "GridHeightNumeric";
-            GridHeightNumeric.Size = new Size(150, 27);
+            GridHeightNumeric.Size = new Size(117, 23);
             GridHeightNumeric.TabIndex = 1;
-            GridHeightNumeric.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
             // GridWidthNumeric
             // 
-            GridWidthNumeric.Location = new Point(6, 49);
-            GridWidthNumeric.Maximum = new decimal(new int[] { 1024, 0, 0, 0 });
-            GridWidthNumeric.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            GridWidthNumeric.Location = new Point(5, 39);
+            GridWidthNumeric.Margin = new Padding(2);
             GridWidthNumeric.Name = "GridWidthNumeric";
-            GridWidthNumeric.Size = new Size(150, 27);
+            GridWidthNumeric.Size = new Size(117, 23);
             GridWidthNumeric.TabIndex = 0;
-            GridWidthNumeric.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
             // MergeFontH
             // 
@@ -443,21 +462,19 @@
             MergeFontH.Controls.Add(panel5);
             MergeFontH.Controls.Add(panel4);
             MergeFontH.Controls.Add(panel3);
-            MergeFontH.Location = new Point(4, 28);
-            MergeFontH.Margin = new Padding(4);
+            MergeFontH.Location = new Point(4, 24);
             MergeFontH.Name = "MergeFontH";
-            MergeFontH.Padding = new Padding(4);
-            MergeFontH.Size = new Size(1192, 728);
+            MergeFontH.Padding = new Padding(3);
+            MergeFontH.Size = new Size(925, 572);
             MergeFontH.TabIndex = 2;
             MergeFontH.Text = "合併字型檔";
             MergeFontH.UseVisualStyleBackColor = true;
             // 
             // SafeMergeFile
             // 
-            SafeMergeFile.Location = new Point(12, 13);
-            SafeMergeFile.Margin = new Padding(4);
+            SafeMergeFile.Location = new Point(9, 10);
             SafeMergeFile.Name = "SafeMergeFile";
-            SafeMergeFile.Size = new Size(96, 29);
+            SafeMergeFile.Size = new Size(75, 23);
             SafeMergeFile.TabIndex = 9;
             SafeMergeFile.Text = "存檔";
             SafeMergeFile.UseVisualStyleBackColor = true;
@@ -468,30 +485,27 @@
             panel5.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel5.Controls.Add(MergeFile3);
             panel5.Controls.Add(MergeFile);
-            panel5.Location = new Point(795, 49);
-            panel5.Margin = new Padding(4);
+            panel5.Location = new Point(618, 39);
             panel5.Name = "panel5";
-            panel5.Size = new Size(386, 671);
+            panel5.Size = new Size(300, 530);
             panel5.TabIndex = 8;
             // 
             // MergeFile3
             // 
             MergeFile3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            MergeFile3.Location = new Point(4, 72);
-            MergeFile3.Margin = new Padding(4);
+            MergeFile3.Location = new Point(3, 57);
             MergeFile3.Multiline = true;
             MergeFile3.Name = "MergeFile3";
             MergeFile3.ReadOnly = true;
             MergeFile3.ScrollBars = ScrollBars.Both;
-            MergeFile3.Size = new Size(377, 594);
+            MergeFile3.Size = new Size(294, 470);
             MergeFile3.TabIndex = 1;
             // 
             // MergeFile
             // 
-            MergeFile.Location = new Point(26, 14);
-            MergeFile.Margin = new Padding(4);
+            MergeFile.Location = new Point(20, 11);
             MergeFile.Name = "MergeFile";
-            MergeFile.Size = new Size(96, 29);
+            MergeFile.Size = new Size(75, 23);
             MergeFile.TabIndex = 0;
             MergeFile.Text = "合併檔案";
             MergeFile.UseVisualStyleBackColor = true;
@@ -503,40 +517,36 @@
             panel4.Controls.Add(File2);
             panel4.Controls.Add(labelFile2);
             panel4.Controls.Add(ReadFile2);
-            panel4.Location = new Point(401, 49);
-            panel4.Margin = new Padding(4);
+            panel4.Location = new Point(312, 39);
             panel4.Name = "panel4";
-            panel4.Size = new Size(386, 671);
+            panel4.Size = new Size(300, 530);
             panel4.TabIndex = 7;
             // 
             // File2
             // 
             File2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            File2.Location = new Point(4, 72);
-            File2.Margin = new Padding(4);
+            File2.Location = new Point(3, 57);
             File2.Multiline = true;
             File2.Name = "File2";
             File2.ReadOnly = true;
             File2.ScrollBars = ScrollBars.Both;
-            File2.Size = new Size(377, 594);
+            File2.Size = new Size(294, 470);
             File2.TabIndex = 5;
             // 
             // labelFile2
             // 
             labelFile2.AutoSize = true;
-            labelFile2.Location = new Point(4, 49);
-            labelFile2.Margin = new Padding(4, 0, 4, 0);
+            labelFile2.Location = new Point(3, 39);
             labelFile2.Name = "labelFile2";
-            labelFile2.Size = new Size(48, 19);
+            labelFile2.Size = new Size(38, 15);
             labelFile2.TabIndex = 3;
             labelFile2.Text = "檔案2";
             // 
             // ReadFile2
             // 
-            ReadFile2.Location = new Point(4, 14);
-            ReadFile2.Margin = new Padding(4);
+            ReadFile2.Location = new Point(3, 11);
             ReadFile2.Name = "ReadFile2";
-            ReadFile2.Size = new Size(96, 29);
+            ReadFile2.Size = new Size(75, 23);
             ReadFile2.TabIndex = 1;
             ReadFile2.Text = "讀取檔案2";
             ReadFile2.UseVisualStyleBackColor = true;
@@ -549,30 +559,27 @@
             panel3.Controls.Add(File1);
             panel3.Controls.Add(ReadFile1);
             panel3.Controls.Add(labelFile1);
-            panel3.Location = new Point(8, 49);
-            panel3.Margin = new Padding(4);
+            panel3.Location = new Point(6, 39);
             panel3.Name = "panel3";
-            panel3.Size = new Size(386, 671);
+            panel3.Size = new Size(300, 530);
             panel3.TabIndex = 6;
             // 
             // File1
             // 
             File1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            File1.Location = new Point(4, 72);
-            File1.Margin = new Padding(4);
+            File1.Location = new Point(3, 57);
             File1.Multiline = true;
             File1.Name = "File1";
             File1.ReadOnly = true;
             File1.ScrollBars = ScrollBars.Both;
-            File1.Size = new Size(377, 594);
+            File1.Size = new Size(294, 470);
             File1.TabIndex = 4;
             // 
             // ReadFile1
             // 
-            ReadFile1.Location = new Point(4, 4);
-            ReadFile1.Margin = new Padding(4);
+            ReadFile1.Location = new Point(3, 3);
             ReadFile1.Name = "ReadFile1";
-            ReadFile1.Size = new Size(96, 29);
+            ReadFile1.Size = new Size(75, 23);
             ReadFile1.TabIndex = 0;
             ReadFile1.Text = "讀取檔案1";
             ReadFile1.UseVisualStyleBackColor = true;
@@ -581,10 +588,9 @@
             // labelFile1
             // 
             labelFile1.AutoSize = true;
-            labelFile1.Location = new Point(4, 49);
-            labelFile1.Margin = new Padding(4, 0, 4, 0);
+            labelFile1.Location = new Point(3, 39);
             labelFile1.Name = "labelFile1";
-            labelFile1.Size = new Size(48, 19);
+            labelFile1.Size = new Size(38, 15);
             labelFile1.TabIndex = 2;
             labelFile1.Text = "檔案1";
             // 
@@ -607,11 +613,10 @@
             Fontlib.Controls.Add(SelectFontSize);
             Fontlib.Controls.Add(label9);
             Fontlib.Controls.Add(SelectFontType);
-            Fontlib.Location = new Point(4, 28);
-            Fontlib.Margin = new Padding(4);
+            Fontlib.Location = new Point(4, 24);
             Fontlib.Name = "Fontlib";
-            Fontlib.Padding = new Padding(4);
-            Fontlib.Size = new Size(1192, 728);
+            Fontlib.Padding = new Padding(3);
+            Fontlib.Size = new Size(925, 572);
             Fontlib.TabIndex = 3;
             Fontlib.Text = "點矩陣自行轉換";
             Fontlib.UseVisualStyleBackColor = true;
@@ -619,109 +624,98 @@
             // Format
             // 
             Format.AutoSize = true;
-            Format.Location = new Point(805, 82);
-            Format.Margin = new Padding(4, 0, 4, 0);
+            Format.Location = new Point(626, 65);
             Format.Name = "Format";
-            Format.Size = new Size(69, 19);
+            Format.Size = new Size(55, 15);
             Format.TabIndex = 16;
             Format.Text = "資料格式";
             // 
             // label15
             // 
             label15.AutoSize = true;
-            label15.Location = new Point(726, 82);
-            label15.Margin = new Padding(4, 0, 4, 0);
+            label15.Location = new Point(565, 65);
             label15.Name = "label15";
-            label15.Size = new Size(69, 19);
+            label15.Size = new Size(55, 15);
             label15.TabIndex = 15;
             label15.Text = "資料格式";
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(726, 63);
-            label11.Margin = new Padding(4, 0, 4, 0);
+            label11.Location = new Point(565, 50);
             label11.Name = "label11";
-            label11.Size = new Size(69, 19);
+            label11.Size = new Size(55, 15);
             label11.TabIndex = 14;
             label11.Text = "陣列維度";
             // 
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(726, 44);
-            label12.Margin = new Padding(4, 0, 4, 0);
+            label12.Location = new Point(565, 35);
             label12.Name = "label12";
-            label12.Size = new Size(69, 19);
+            label12.Size = new Size(55, 15);
             label12.TabIndex = 13;
             label12.Text = "實際尺寸";
             // 
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(726, 25);
-            label13.Margin = new Padding(4, 0, 4, 0);
+            label13.Location = new Point(565, 20);
             label13.Name = "label13";
-            label13.Size = new Size(69, 19);
+            label13.Size = new Size(55, 15);
             label13.TabIndex = 12;
             label13.Text = "標準尺寸";
             // 
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(726, 4);
-            label14.Margin = new Padding(4, 0, 4, 0);
+            label14.Location = new Point(565, 3);
             label14.Name = "label14";
-            label14.Size = new Size(69, 19);
+            label14.Size = new Size(55, 15);
             label14.TabIndex = 11;
             label14.Text = "目前字元";
             // 
             // Array_Dimensions
             // 
             Array_Dimensions.AutoSize = true;
-            Array_Dimensions.Location = new Point(805, 63);
-            Array_Dimensions.Margin = new Padding(4, 0, 4, 0);
+            Array_Dimensions.Location = new Point(626, 50);
             Array_Dimensions.Name = "Array_Dimensions";
-            Array_Dimensions.Size = new Size(69, 19);
+            Array_Dimensions.Size = new Size(55, 15);
             Array_Dimensions.TabIndex = 10;
             Array_Dimensions.Text = "陣列維度";
             // 
             // GlyphSize
             // 
             GlyphSize.AutoSize = true;
-            GlyphSize.Location = new Point(805, 44);
-            GlyphSize.Margin = new Padding(4, 0, 4, 0);
+            GlyphSize.Location = new Point(626, 35);
             GlyphSize.Name = "GlyphSize";
-            GlyphSize.Size = new Size(69, 19);
+            GlyphSize.Size = new Size(55, 15);
             GlyphSize.TabIndex = 9;
             GlyphSize.Text = "實際尺寸";
             // 
             // Bounding_Box
             // 
             Bounding_Box.AutoSize = true;
-            Bounding_Box.Location = new Point(805, 25);
-            Bounding_Box.Margin = new Padding(4, 0, 4, 0);
+            Bounding_Box.Location = new Point(626, 20);
             Bounding_Box.Name = "Bounding_Box";
-            Bounding_Box.Size = new Size(69, 19);
+            Bounding_Box.Size = new Size(55, 15);
             Bounding_Box.TabIndex = 8;
             Bounding_Box.Text = "標準尺寸";
             // 
             // Character
             // 
             Character.AutoSize = true;
-            Character.Location = new Point(805, 4);
-            Character.Margin = new Padding(4, 0, 4, 0);
+            Character.Location = new Point(626, 3);
             Character.Name = "Character";
-            Character.Size = new Size(69, 19);
+            Character.Size = new Size(55, 15);
             Character.TabIndex = 7;
             Character.Text = "目前字元";
             // 
             // SaveDotFont
             // 
-            SaveDotFont.Location = new Point(1047, 61);
-            SaveDotFont.Margin = new Padding(4);
+            SaveDotFont.Location = new Point(814, 48);
             SaveDotFont.Name = "SaveDotFont";
-            SaveDotFont.Size = new Size(96, 29);
+            SaveDotFont.Size = new Size(75, 23);
             SaveDotFont.TabIndex = 6;
             SaveDotFont.Text = "存檔";
             SaveDotFont.UseVisualStyleBackColor = true;
@@ -729,61 +723,55 @@
             // 
             // splitContainer1
             // 
-            splitContainer1.Location = new Point(0, 115);
-            splitContainer1.Margin = new Padding(4);
+            splitContainer1.Location = new Point(0, 91);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
-            splitContainer1.Panel1.Controls.Add(DotFontReview);
             splitContainer1.Panel1.Controls.Add(CharacterListBox);
+            splitContainer1.Panel1.Controls.Add(DotFontReview);
             // 
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(FullFontArray);
-            splitContainer1.Size = new Size(1185, 602);
-            splitContainer1.SplitterDistance = 584;
-            splitContainer1.SplitterWidth = 5;
+            splitContainer1.Size = new Size(922, 475);
+            splitContainer1.SplitterDistance = 455;
             splitContainer1.TabIndex = 5;
-            // 
-            // DotFontReview
-            // 
-            DotFontReview.Location = new Point(4, 146);
-            DotFontReview.Margin = new Padding(4);
-            DotFontReview.Name = "DotFontReview";
-            DotFontReview.Size = new Size(577, 456);
-            DotFontReview.TabIndex = 0;
-            DotFontReview.TabStop = false;
-            DotFontReview.Paint += DotFontReview_Paint;
             // 
             // CharacterListBox
             // 
             CharacterListBox.FormattingEnabled = true;
-            CharacterListBox.ItemHeight = 19;
-            CharacterListBox.Location = new Point(8, 0);
-            CharacterListBox.Margin = new Padding(4);
+            CharacterListBox.ItemHeight = 15;
+            CharacterListBox.Location = new Point(6, 0);
             CharacterListBox.Name = "CharacterListBox";
-            CharacterListBox.Size = new Size(572, 137);
+            CharacterListBox.Size = new Size(446, 109);
             CharacterListBox.TabIndex = 17;
+            // 
+            // DotFontReview
+            // 
+            DotFontReview.Location = new Point(3, 115);
+            DotFontReview.Name = "DotFontReview";
+            DotFontReview.Size = new Size(449, 360);
+            DotFontReview.TabIndex = 0;
+            DotFontReview.TabStop = false;
+            DotFontReview.Paint += DotFontReview_Paint;
             // 
             // FullFontArray
             // 
-            FullFontArray.Location = new Point(4, 4);
-            FullFontArray.Margin = new Padding(4);
+            FullFontArray.Location = new Point(3, 3);
             FullFontArray.Multiline = true;
             FullFontArray.Name = "FullFontArray";
             FullFontArray.ReadOnly = true;
             FullFontArray.ScrollBars = ScrollBars.Both;
-            FullFontArray.Size = new Size(586, 594);
+            FullFontArray.Size = new Size(457, 502);
             FullFontArray.TabIndex = 0;
             FullFontArray.TabStop = false;
             // 
             // DotFontGen
             // 
-            DotFontGen.Location = new Point(413, 54);
-            DotFontGen.Margin = new Padding(4);
+            DotFontGen.Location = new Point(353, 48);
             DotFontGen.Name = "DotFontGen";
-            DotFontGen.Size = new Size(96, 29);
+            DotFontGen.Size = new Size(75, 23);
             DotFontGen.TabIndex = 4;
             DotFontGen.Text = "產生點矩陣字形";
             DotFontGen.UseVisualStyleBackColor = true;
@@ -792,48 +780,45 @@
             // label10
             // 
             label10.AutoSize = true;
-            label10.Location = new Point(278, 28);
-            label10.Margin = new Padding(4, 0, 4, 0);
+            label10.Location = new Point(243, 22);
             label10.Name = "label10";
-            label10.Size = new Size(93, 19);
+            label10.Size = new Size(75, 15);
             label10.TabIndex = 3;
             label10.Text = "字型大小(pt)";
             // 
             // SelectFontSize
             // 
             SelectFontSize.FormattingEnabled = true;
-            SelectFontSize.Location = new Point(251, 56);
-            SelectFontSize.Margin = new Padding(4);
+            SelectFontSize.Location = new Point(216, 44);
             SelectFontSize.Name = "SelectFontSize";
-            SelectFontSize.Size = new Size(154, 27);
+            SelectFontSize.Size = new Size(121, 23);
             SelectFontSize.TabIndex = 2;
             // 
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(90, 28);
-            label9.Margin = new Padding(4, 0, 4, 0);
+            label9.Location = new Point(70, 22);
             label9.Name = "label9";
-            label9.Size = new Size(69, 19);
+            label9.Size = new Size(55, 15);
             label9.TabIndex = 1;
             label9.Text = "選擇字形";
             // 
             // SelectFontType
             // 
             SelectFontType.FormattingEnabled = true;
-            SelectFontType.Location = new Point(8, 56);
-            SelectFontType.Margin = new Padding(4);
+            SelectFontType.Location = new Point(6, 44);
             SelectFontType.Name = "SelectFontType";
-            SelectFontType.Size = new Size(234, 27);
+            SelectFontType.Size = new Size(183, 23);
             SelectFontType.TabIndex = 0;
             // 
             // FontToLCD
             // 
-            AutoScaleDimensions = new SizeF(9F, 19F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1210, 774);
+            ClientSize = new Size(941, 611);
             Controls.Add(array_Tran);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(2);
             Name = "FontToLCD";
             Text = "FontToLCD";
             ((System.ComponentModel.ISupportInitialize)BitView).EndInit();
@@ -844,10 +829,10 @@
             array_Tran.ResumeLayout(false);
             Font_Tran.ResumeLayout(false);
             DotFontDesign.ResumeLayout(false);
-            DotFontDesign.PerformLayout();
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             scrollPanelForDesignCanvas.ResumeLayout(false);
+            scrollPanelForDesignCanvas.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)DesignCanvas).EndInit();
             ((System.ComponentModel.ISupportInitialize)GridHeightNumeric).EndInit();
             ((System.ComponentModel.ISupportInitialize)GridWidthNumeric).EndInit();
@@ -878,7 +863,7 @@
         private PictureBox BitView;
         private Label label4;
         private TextBox Hex;
-        private Button SingleLetterArray;
+        private Button button1;
         private Panel panel1;
         private Label label5;
         private ComboBox FontSize;

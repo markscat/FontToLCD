@@ -29,13 +29,13 @@ namespace FontToLCD
                 FontSize.Items.AddRange(new object[] { "8", "12", "16", "24", "32" });
                 FontSize.SelectedIndex = 0;
             // 按鈕事件
-                button1.Click += Button1_Click;
+                button1.Click += SingleLetterArray;
 
             // 預設文字
                 Imput.Text = "a";
             }
 
-        private void Button1_Click(object? sender, EventArgs e)
+        private void SingleLetterArray(object? sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(Imput.Text)) return;
 
@@ -381,7 +381,7 @@ namespace FontToLCD
 
 
         /*
-            private void Button1_Click(object? sender, EventArgs e){
+            private void SingleLetterArray(object? sender, EventArgs e){
             if (string.IsNullOrEmpty(Imput.Text)) return;
             if (FontType.SelectedItem == null || FontSize.SelectedItem == null) return;
             

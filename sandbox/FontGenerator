@@ -885,10 +885,6 @@ namespace FontToLCD // 確保命名空間與您的主程式相同
             // 為了範例，我們回傳一個假的陣列
             return $"const uint8_t font_char_{(int)c}[{maxHeight}][{maxWidth}] = {{ /* data for '{c}' */ }};";
         }
-
-
-
-
         /*
         internal void GenerateAsciiLibrary(FontGenerationOptions options)
         {

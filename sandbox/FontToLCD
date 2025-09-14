@@ -27,7 +27,7 @@ namespace FontToLCD
         private int _designPixelScale = 20;
 
         // 存最後一次生成的矩陣
-        private int[,]? _lastGeneratedMatrix; // 新增：用於儲存 Button1_Click 生成的矩陣
+        private int[,]? _lastGeneratedMatrix; // 新增：用於儲存 SingleLetterArray 生成的矩陣
 
 
         private string _currentConverterType = "";
@@ -63,10 +63,6 @@ namespace FontToLCD
             DesignCanvas.MouseClick += DesignCanvas_MouseClick;
             CreateGridButton.Click += CreateGridButton_Click;
             GenerateHexButton.Click += GenerateHexButton_Click;
-            this.DotFontReview.Paint += new PaintEventHandler(this.DotFontReview_Paint);
-            this.CharacterListBox.SelectedIndexChanged += new System.EventHandler(this.CharacterListBox_SelectedIndexChanged);
-
-
         }
 
         private void InitForm()
@@ -81,7 +77,7 @@ namespace FontToLCD
             FontSize.Items.AddRange(new object[] { "8", "12", "16", "24", "32" });
             FontSize.SelectedIndex = 0;
             // 按鈕事件
-            SingleLetterArray.Click += Button1_Click;
+            button1.Click += SingleLetterArray;
 
             // 預設文字
             Imput.Text = "a";
@@ -106,7 +102,7 @@ namespace FontToLCD
 
         }
 
-        private void Button1_Click(object? sender, EventArgs e)
+        private void SingleLetterArray(object? sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(Imput.Text)) return;
 
@@ -359,7 +355,7 @@ namespace FontToLCD
             }
 
             // --- 2. 更新右邊的 HEX 輸出 (共用整個轉換器架構) ---
-            // 這段邏輯和您第一個分頁的 button1_Click 中的轉換邏輯完全一樣！
+            // 這段邏輯和您第一個分頁的 SingleLetterArray 中的轉換邏輯完全一樣！
             IScreenConverter? converter = null;
 
             string selectedScreen = Design_HEX_Type.SelectedItem?.ToString() ?? "";
@@ -819,6 +815,60 @@ namespace FontToLCD
             }
         }
 
+        /*
+        private void ReadFile1_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    filePath1 = ofd.FileName;
+                    //File1.Text = filePath1; // 顯示檔名
+
+                    try
+                    {
+                        string content = File.ReadAllText(filePath1, Encoding.UTF8);
+                        // 也可以顯示內容在另一個 TextBox 或 RichTextBox，如果你想預覽 HEX
+                        File1.Text = content;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"讀取檔案失敗: {ex.Message}");
+                    }
+
+                    labelFile1.Text = Path.GetFileName(filePath1); // 只顯示檔名
+                }
+            }
+        }
+        */
+        /*
+        private void ReadFile2_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    filePath2 = ofd.FileName;
+                    //File1.Text = filePath2; // 顯示檔名
+                    try
+                    {
+                        string content = File.ReadAllText(filePath2, Encoding.UTF8);
+                        // 也可以顯示內容在另一個 TextBox 或 RichTextBox，如果你想預覽 HEX
+                        // File1Content.Text = content;
+                        File2.Text = content;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"讀取檔案失敗: {ex.Message}");
+                    }
+                    labelFile2.Text = Path.GetFileName(filePath2); // 只顯示檔名
+                }
+            }
+        }
+        */
+
 
 
         private void SafeMergeFile_Click(object sender, EventArgs e)
@@ -971,10 +1021,9 @@ namespace FontToLCD
                 // 4. 將所有生成好的字元填充到 ListBox 中，讓使用者可以選擇
                 //    (假設您新增的 ListBox 叫做 CharacterListBox)
                 CharacterListBox.Items.Clear();
-
                 foreach (char c in _fontGenerator.GetGeneratedCharacters().OrderBy(c => c))
                 {
-                    CharacterListBox.Items.Add(c.ToString());//錯誤：引數 1: 無法從 '方法群組' 轉換成 'object'
+                    CharacterListBox.Items.Add(c);
                 }
 
                 // 預設選中並預覽第一個字元
@@ -989,32 +1038,16 @@ namespace FontToLCD
             {
                 MessageBox.Show($"生成失敗: {ex.Message}");
             }
-
-            var generated = _fontGenerator.GetGeneratedCharacters();//<<名稱 '_font_generator' 不存在於目前的內容中
-            MessageBox.Show($"已生成字元數: {generated.Count}");
-#if _Debug
-            if (generated.Count > 0)
-            {
-                char sample = generated.OrderBy(c => c).First();
-                var r = _fontGenerator.GetResultForCharacter(sample);
-                MessageBox.Show($"示例 '{sample}' -> Bitmap: {(r?.VisualBitmap != null ? "OK" : "NULL")}, C_ArrayString length: {(r?.C_ArrayString?.Length ?? 0)}");
-            }
-#endif
-
         }
 
 
         // ======== 新功能：當使用者在 ListBox 中選擇不同字元時的邏輯 ========
         private void CharacterListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-#if _Debug
-            //MessageBox.Show("事件觸發");
-
-            //MessageBox.Show($"DotFontReview.Visible={DotFontReview.Visible}, Size={DotFontReview.Width}x{DotFontReview.Height}");
-#endif
             if (CharacterListBox.SelectedItem == null) return;
             // 檢查 2: 確保我們的「外部引擎」物件不是 null
 
+            //FontGenerator generator = _fontGenerator;
 
             if (_fontGenerator == null)
             {
@@ -1028,7 +1061,11 @@ namespace FontToLCD
             if (str.Length == 0) return;
             char selectedChar = str[0];
 
+            //char selectedChar = CharacterListBox.SelectedItem.ToString()![0]; // 保險轉換
+            //char selectedChar = (char)CharacterListBox.SelectedItem;
+
             // 從外部引擎獲取該字元的完整生成結果
+
             CharacterGenerationResult? result = _fontGenerator.GetResultForCharacter(selectedChar);
             if (result == null)
             {
@@ -1036,42 +1073,35 @@ namespace FontToLCD
                 DotFontReview.Image = null;
                 return;
             }
-
-            // === 更新文字區域 ===
-            Character.Text = result.Character.ToString();
-            GlyphSize.Text = result.GlyphBounds == Rectangle.Empty
-                ? "0x0 pixels"
-                : $"{result.GlyphBounds.Width}x{result.GlyphBounds.Height} pixels";
-            Array_Dimensions.Text = $"[{result.ArrayDimensions.Height}][{result.ArrayDimensions.Width}]";
-            Format.Text = "Horizontal Scan";
-
-            // === 更新 C 陣列 ===
-            FullFontArray.Text = string.IsNullOrEmpty(result.C_ArrayString)
-                ? "// 無陣列資料"
-                : result.C_ArrayString;
-
-            // 顯示 C 陣列（若無則顯示提示）
-            if (result.VisualBitmap != null)
+            if (result.VisualBitmap == null)
             {
-                DotFontReview.SizeMode = PictureBoxSizeMode.Zoom; // 或 PictureBoxSizeMode.CenterImage, 看你想要怎樣縮放
-                DotFontReview.Image = result.VisualBitmap;
-            }
-            else
-            {
+                MessageBox.Show($"字元 {selectedChar} 的 Bitmap 尚未生成！");
                 DotFontReview.Image = null;
-                MessageBox.Show($"字元 {selectedChar} 的 Bitmap 尚未生成！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
- 
+                // 更新所有相關的 Label 和 TextBox
+                
+            Character.Text = result.Character.ToString();
+            GlyphSize.Text = $"{result.GlyphBounds.Width}x{result.GlyphBounds.Height} pixels";
+            Array_Dimensions.Text = $"[{result.ArrayDimensions.Height}][{result.ArrayDimensions.Width}]";
+            Format.Text = "Horizontal Scan"; // 假設目前為水平掃描
+                                             // FullFontArray.Text = result.C_ArrayString;
+
+
+            DotFontReview.Image = result.VisualBitmap;
+            // 準備好要繪製的資料，並觸發 PictureBox 重繪
+            //_currentPreviewBitmap = result.VisualBitmap;  
+            //_currentGlyphBounds = result.GlyphBounds;
+            //DotFontReview.Invalidate(); // 這一行非常重要！
+
         }
 
         // ======== 新功能：PictureBox 的繪圖邏輯 ========
         private void DotFontReview_Paint(object sender, PaintEventArgs e)
         {
+            if (_currentPreviewBitmap == null) return;
 
-            if (_currentPreviewBitmap == null){ return; }
-            else { e.Graphics.DrawImage(_currentPreviewBitmap, 0, 0); }
-
-                Graphics g = e.Graphics;
+            Graphics g = e.Graphics;
             g.Clear(Color.White); // 用白色清空背景
 
             // 設定插值模式為 NearestNeighbor，這樣放大的像素塊才會是清晰的方塊，而不是模糊的
@@ -1100,7 +1130,51 @@ namespace FontToLCD
             }
         }
         // 確保 FontGenerator.cs 檔案頂部有 using System.Drawing;
+#if test
 
+        /// <summary>
+        /// 批次生成一套完整的標準 ASCII 字型庫。
+        /// 這是「點矩陣自行轉換」功能的核心入口點。
+        /// </summary>
+        /// <param name="options">包含字型名稱、大小等設定的選項物件。</param>
+        public void GenerateAsciiLibrary(FontGenerationOptions options)
+        {
+            // 步驟 1: 清理工作區
+            // 清除上一次生成的舊資料，為本次生成做準備。
+            _generatedLibrary.Clear();
+
+            // 步驟 2: 準備工具
+            // 根據使用者傳入的選項，建立 Font 物件。
+            Font font = new Font(options.FontName, options.FontSize);
+            // 從選項中獲取要生成的字元集字串。
+            string characters = options.CharactersToGenerate;
+
+            // 步驟 3: 進行預先測量 (最關鍵的一步)
+            // 呼叫 CalculateBoundingBox，計算出這套字型庫所有字元中
+            // 所需的最大寬高，並將其存為這套字型庫的「統一標準尺寸」。
+            // 我們將結果儲存在成員變數 GeneratedBoundingBox 中，以便 UI 可以隨時查詢。
+            //this.GeneratedBoundingBox = CalculateBoundingBox(font, characters);
+
+            this.GeneratedBoundingBox = FontGenerator.CalculateBoundingBox(font, characters);
+            
+
+            // 步驟 4: 批次處理
+            // 遍歷字元集中的每一個字元。
+            foreach (char c in characters)
+            {
+                // 對於每一個字元，呼叫 GenerateSingleCharacter 輔助方法，
+                // 傳入字元本身、字型物件、以及我們剛才計算出的「統一標準尺寸」。
+                // GenerateSingleCharacter 會回傳一個包含所有結果 (Bitmap, C 陣列等) 的物件。
+       
+                var result = _fontGenerator.GenerateSingleCharacter(c, font, this.GeneratedBoundingBox);
+                // 將單一字元的生成結果，以字元為索引鍵 (Key)，存入我們的字典中。
+                _generatedLibrary.Add(c, result);
+            }
+
+            // 當這個方法執行完畢後，_generatedLibrary 成員變數中就已經包含了
+            // 所有 ASCII 字元的完整生成資料，隨時可以被 UI 查詢用於預覽。
+        }
+#endif
         // 在 FontToLCD.cs (主程式 Form 類別) 中
 
         private void SaveDotFont_Click(object sender, EventArgs e)
@@ -1158,108 +1232,6 @@ namespace FontToLCD
                 }
             }
         }
-
-
-#if test
-
-        /// <summary>
-        /// 批次生成一套完整的標準 ASCII 字型庫。
-        /// 這是「點矩陣自行轉換」功能的核心入口點。
-        /// </summary>
-        /// <param name="options">包含字型名稱、大小等設定的選項物件。</param>
-        public void GenerateAsciiLibrary(FontGenerationOptions options)
-        {
-            // 步驟 1: 清理工作區
-            // 清除上一次生成的舊資料，為本次生成做準備。
-            _generatedLibrary.Clear();
-
-            // 步驟 2: 準備工具
-            // 根據使用者傳入的選項，建立 Font 物件。
-            Font font = new Font(options.FontName, options.FontSize);
-            // 從選項中獲取要生成的字元集字串。
-            string characters = options.CharactersToGenerate;
-
-            // 步驟 3: 進行預先測量 (最關鍵的一步)
-            // 呼叫 CalculateBoundingBox，計算出這套字型庫所有字元中
-            // 所需的最大寬高，並將其存為這套字型庫的「統一標準尺寸」。
-            // 我們將結果儲存在成員變數 GeneratedBoundingBox 中，以便 UI 可以隨時查詢。
-            //this.GeneratedBoundingBox = CalculateBoundingBox(font, characters);
-
-            this.GeneratedBoundingBox = FontGenerator.CalculateBoundingBox(font, characters);
-            
-
-            // 步驟 4: 批次處理
-            // 遍歷字元集中的每一個字元。
-            foreach (char c in characters)
-            {
-                // 對於每一個字元，呼叫 GenerateSingleCharacter 輔助方法，
-                // 傳入字元本身、字型物件、以及我們剛才計算出的「統一標準尺寸」。
-                // GenerateSingleCharacter 會回傳一個包含所有結果 (Bitmap, C 陣列等) 的物件。
-       
-                var result = _fontGenerator.GenerateSingleCharacter(c, font, this.GeneratedBoundingBox);
-                // 將單一字元的生成結果，以字元為索引鍵 (Key)，存入我們的字典中。
-                _generatedLibrary.Add(c, result);
-            }
-
-            // 當這個方法執行完畢後，_generatedLibrary 成員變數中就已經包含了
-            // 所有 ASCII 字元的完整生成資料，隨時可以被 UI 查詢用於預覽。
-        }
-#endif
-
-        /*
-        private void ReadFile1_Click(object sender, EventArgs e)
-        {
-            using (OpenFileDialog ofd = new OpenFileDialog())
-            {
-                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
-                if (ofd.ShowDialog() == DialogResult.OK)
-                {
-                    filePath1 = ofd.FileName;
-                    //File1.Text = filePath1; // 顯示檔名
-
-                    try
-                    {
-                        string content = File.ReadAllText(filePath1, Encoding.UTF8);
-                        // 也可以顯示內容在另一個 TextBox 或 RichTextBox，如果你想預覽 HEX
-                        File1.Text = content;
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"讀取檔案失敗: {ex.Message}");
-                    }
-
-                    labelFile1.Text = Path.GetFileName(filePath1); // 只顯示檔名
-                }
-            }
-        }
-        */
-        /*
-        private void ReadFile2_Click(object sender, EventArgs e)
-        {
-            using (OpenFileDialog ofd = new OpenFileDialog())
-            {
-                ofd.Filter = "Header files (*.h)|*.h|All files (*.*)|*.*";
-                if (ofd.ShowDialog() == DialogResult.OK)
-                {
-                    filePath2 = ofd.FileName;
-                    //File1.Text = filePath2; // 顯示檔名
-                    try
-                    {
-                        string content = File.ReadAllText(filePath2, Encoding.UTF8);
-                        // 也可以顯示內容在另一個 TextBox 或 RichTextBox，如果你想預覽 HEX
-                        // File1Content.Text = content;
-                        File2.Text = content;
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"讀取檔案失敗: {ex.Message}");
-                    }
-                    labelFile2.Text = Path.GetFileName(filePath2); // 只顯示檔名
-                }
-            }
-        }
-        */
-
     }
     //public partial class FontToLCD : Form end
 
