@@ -117,7 +117,7 @@ namespace FontToLCD
 
             int[,] matrix; // 用來儲存最終的 0/1 矩陣
 
-
+            int C, R;
             // 畫字
             using (Bitmap bmp = DrawCharToBitmap(text.Substring(0, 1), fontName, fontSize))
             {
@@ -130,6 +130,10 @@ namespace FontToLCD
                 IScreenConverter? converter = null; // 宣告一個介面變數，它可以持有任何一種轉換器
                 string selectedScreen = HEX_Type.SelectedItem?.ToString() ?? "";
 
+                string declaration = "";
+                string dataType;
+                string arrayName;
+                int arraySize;
 
                 switch (selectedScreen)
                 {
@@ -137,6 +141,7 @@ namespace FontToLCD
                         converter = new HorizontalMonoConverter();
                         _currentConverterType = "HorizontalMonoConverter";
                         break;
+
                     case "OLED SH1106/SSD1306 (垂直)":
                         converter = new Sh1106Converter();
                         _currentConverterType = "Sh1106Converter";
@@ -150,8 +155,6 @@ namespace FontToLCD
                         MessageBox.Show("請選擇一個有效的 HEX 輸出類型！");
                         return;
                 }
-
-
                 // --- 步驟 3: 執行轉換並更新 UI ---
                 // 獲取顏色。即使是單色轉換器，我們也傳入顏色，只是它不會使用而已。
                 // 這裡我們用黑色和白色作為預設值。
@@ -162,7 +165,45 @@ namespace FontToLCD
                 // 這就是整個架構最優雅的地方！
                 // 無論 converter 到底是哪種轉換器，我們都用完全相同的方式呼叫它。
                 // 主程式不需要知道轉換的任何細節。
-                Hex.Text = converter.Convert(matrix, foregroundColor, backgroundColor);
+
+                // 轉換矩陣
+                string matrixHex = converter.Convert(matrix, foregroundColor, backgroundColor);
+
+                // --- 步驟 4: 取得矩陣大小生成宣告字串 ---
+                C = converter.Cols;
+                R = converter.Rows;
+
+                dataType = selectedScreen.Contains("RGB565") ? "const uint16_t" : "const uint8_t";
+                arrayName = selectedScreen.Contains("SH1106") ? $"SH1106_{C}x{R}" :
+                            selectedScreen.Contains("水平") ? $"Hor-array_{C}x{R}" :
+                           $"ILI9225_{C}x{R}_RGB565";
+
+                string license = @"/**
+                * GNU GENERAL PUBLIC LICENSE 
+                * Version 3, 29 June 2007
+                * Copyright (C) [2025] [Ethan]
+                * 本程式是一個自由軟體：您可以依照 **GNU 通用公共授權條款（GPL）** 發佈和/或修改，
+                * GPL 版本 3 或（依您選擇）任何更新版本。
+                * 本程式的發佈目的是希望它對您有幫助，但 **不提供任何擔保**，
+                * 甚至不包含適銷性或特定用途適用性的默示擔保。
+                * 請參閱 **GNU 通用公共授權條款** 以獲取更多詳細資訊。
+                * 您應當已經收到一份 **GNU 通用公共授權條款** 副本。
+                * 如果沒有，請參閱 <https://www.gnu.org/licenses/gpl-3.0.html>。
+                *
+                * 本程式主要生成單一字元的陣列,或是自訂單一字元的字型
+                * 生成的陣列依照Sh1106所需要數值的陣列，\r\n";
+       
+
+
+
+                arraySize = selectedScreen.Contains("SH1106") ? C * ((R + 7) / 8) : C * R;
+                declaration = $"{dataType} {arrayName}[{arraySize}] = {{\r\n";
+
+                // 將宣告 + 矩陣 + 尾括號合併
+                string finalHex = license + declaration + matrixHex + "\r\n};";
+                // 顯示到 TextBox
+                Hex.Text = finalHex;
+                //Hex.Text = converter.Convert(matrix, foregroundColor, backgroundColor);
 
                 // 預覽（放大顯示）
                 BitView.Image = DrawMatrixPreview(matrix, 20);

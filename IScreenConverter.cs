@@ -19,5 +19,9 @@ namespace FontToLCD
         /// <returns>格式化後的 HEX 字串。</returns>
         string Convert(int[,] matrix, Color foregroundColor, Color backgroundColor);
 
+        // 新增屬性或方法回傳矩陣大小
+        int Rows { get; }//新增抽象 Auto 屬性 或覆寫繼承的 Auto 屬性 需要重新啟動應用程式。
+        int Cols { get; }//新增抽象 Auto 屬性 或覆寫繼承的 Auto 屬性 需要重新啟動應用程式。
+
     }
 }

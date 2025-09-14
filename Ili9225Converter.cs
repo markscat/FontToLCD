@@ -10,6 +10,13 @@ namespace FontToLCD
     public class Ili9225Converter : IScreenConverter
     {
 
+
+        private int _rows;
+        private int _cols;
+
+        public int Rows => _rows;
+        public int Cols => _cols;
+
         /// <summary>
         /// 執行轉換的核心方法。
         /// 它會將代表「前景」的 1 和代表「背景」的 0，分別對應到使用者指定的兩種顏色。
@@ -40,16 +47,17 @@ namespace FontToLCD
             // 使用 StringBuilder 來高效地建立最終的輸出字串。
             StringBuilder sb = new StringBuilder();
 
-            int rows = matrix.GetLength(0);
-            int cols = matrix.GetLength(1);
+            _rows = matrix.GetLength(0);
+            _cols = matrix.GetLength(1);
 
             // 陣列的開頭
             string dataType = "const uint8_t";
-            string arrayName = $"myChar_{cols}x{rows}";
-            int arraySize = (cols + 7) / 8 * rows;
+            string arrayName = $"myChar_{_cols}x{_rows}";
+            int arraySize = (_cols + 7) / 8 * _rows;
 
 
             //sb.AppendLine($"//LLi9552 \r\n");
+#if LICENSE
             sb.AppendLine($"/** GNU GENERAL PUBLIC LICENSE\r\n" +
            $"* Version 3, 29 June 2007\r\n " +
            $"* Copyright (C) [2025] [Ethan]\r\n * " +
@@ -67,17 +75,19 @@ namespace FontToLCD
            $"* 生成所有的Ascii 陣列" +
            $"* 生成多語言字型檔" +
            $"*/");
-
-            sb.AppendLine($"// Bitmap Font Data for a {cols}x{rows} character");
+           
+            sb.AppendLine($"// Bitmap Font Data for a {_cols}x{_rows} character");
             sb.AppendLine($"{dataType} {arrayName}[{arraySize}] = {{"); // <-- 修改過的開頭
+#endif
+
 
             // --- 步驟 2: 遍歷矩陣並產生 HEX 字串 ---
             // 外層迴圈：逐行處理 (y 座標)，這對應了「水平掃描」模式。
-            for (int y = 0; y < rows; y++)
+            for (int y = 0; y < _rows; y++)
             {
                 sb.Append("  ");
                 // 內層迴圈：逐一處理該行中的每個像素 (x 座標)。
-                for (int x = 0; x < cols; x++)
+                for (int x = 0; x < _cols; x++)
                 {
                     // 檢查當前像素是前景 (1) 還是背景 (0)。
                     if (matrix[y, x] == 1)
@@ -92,9 +102,9 @@ namespace FontToLCD
                         sb.Append($"0x{bgColor565:X4}, ");
                     }
                 }
-                sb.AppendLine(); // 處理完一行後換行。
+                //sb.AppendLine(); // 處理完一行後換行。
             }
-            sb.AppendLine("};"); // 陣列的結尾
+            //sb.AppendLine("};"); // 陣列的結尾
 
             // 回傳最終組合好的完整字串。
 

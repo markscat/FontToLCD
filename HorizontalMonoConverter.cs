@@ -27,18 +27,28 @@ namespace FontToLCD
         /// 例如改為 `value = value | (matrix[y, x] << bitCount);` 並在打包滿 8 位時反轉位元順序，或直接從右向左累加。
         /// </remarks>
         /// 
+
+
+
+        private int _rows;
+        private int _cols;
+
+        public int Rows => _rows;
+        public int Cols => _cols;
+
         public string Convert(int[,] matrix, Color foregroundColor, Color backgroundColor)
         {
             // ▼▼▼ 把您原本 MatrixToHexString 的完整邏輯貼在這裡 ▼▼▼
             StringBuilder sb = new StringBuilder();
-            int rows = matrix.GetLength(0);// 獲取矩陣的高度 (總共有幾行)
-            int cols = matrix.GetLength(1);// 獲取矩陣的寬度 (總共有幾欄)
+            _rows = matrix.GetLength(0);// 獲取矩陣的高度 (總共有幾行)
+            _cols = matrix.GetLength(1);// 獲取矩陣的寬度 (總共有幾欄)
 
-            string dataType = "const uint8_t";
-            string arrayName = $"myChar_{cols}x{rows}";
-            int arraySize = (cols + 7) / 8 * rows;
+            //string dataType = "const uint8_t";
+            //string arrayName = $"myChar_{_cols}x{_rows}";
+            //int arraySize = (_cols + 7) / 8 * _rows;
 
             //sb.AppendLine($"//HorizontalMonoConverter \r\n");
+#if LICENSE
             sb.AppendLine($"/** GNU GENERAL PUBLIC LICENSE\r\n" +
                 $"* Version 3, 29 June 2007\r\n " +
                 $"* Copyright (C) [2025] [Ethan]\r\n * " +
@@ -56,12 +66,12 @@ namespace FontToLCD
                 $"* 生成所有的Ascii 陣列\r\n" +
                 $"* 生成多語言字型檔\r\n" +
                 $"*/");
-            sb.AppendLine($"// Bitmap Font Data for a {cols}x{rows} character");
+            sb.AppendLine($"// Bitmap Font Data for a {_cols}x{_rows} character");
             sb.AppendLine($"{dataType} {arrayName}[{arraySize}] = {{"); // <-- 修改過的開頭
-
+#endif
             // --- 外層迴圈：逐行處理 ---
             // 這個迴圈從第一行 (y=0) 開始，一直處理到最後一行。
-            for (int y = 0; y < rows; y++)
+            for (int y = 0; y < _rows; y++)
             {
                 sb.Append("  ");    // 在每一行的開頭加上縮排，使格式更美觀
                 int value = 0;      // 用於儲存當前正在打包的 8 位元位元組的值
@@ -69,7 +79,7 @@ namespace FontToLCD
 
                 // --- 內層迴圈：處理一行中的每一個像素 ---
                 // 這個迴圈從最左邊的像素 (x=0) 開始，處理到最右邊。
-                for (int x = 0; x < cols; x++)
+                for (int x = 0; x < _cols; x++)
                 {
 
                     // --- 核心位元打包邏輯 (MSB-First) ---

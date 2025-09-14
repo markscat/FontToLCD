@@ -5,19 +5,29 @@ namespace FontToLCD
 {
     public class Sh1106Converter : IScreenConverter
 {
+
+        private int _rows;
+        private int _cols;
+
+        public int Rows => _rows;
+        public int Cols => _cols;
+
         public string Convert(int[,] matrix, Color foregroundColor, Color backgroundColor)
         {
             // ▼▼▼ 把您原本 MatrixToHexString_For_SH1106 的完整邏輯貼在這裡 ▼▼▼
-            StringBuilder sb = new StringBuilder();
+            _rows = matrix.GetLength(0);
+            _cols = matrix.GetLength(1);
+
             int rows = matrix.GetLength(0);
             int cols = matrix.GetLength(1);
+            StringBuilder sb = new StringBuilder();
             int numPages = (rows + 7) / 8;
 
-            string dataType = "const uint8_t";
-            string arrayName = $"myChar_{cols}x{rows}_SH1106"; // 名字裡可以加上格式
+            //string dataType = "const uint8_t";
+            //string arrayName = $"myChar_{cols}x{rows}_SH1106"; // 名字裡可以加上格式
             int arraySize = cols * ((rows + 7) / 8); // 垂直掃描的總大小計算方式
 
-
+#if LICENSE
             sb.AppendLine($" /** GNU GENERAL PUBLIC LICENSE\r\n" +
             $"* Version 3, 29 June 2007\r\n " +
             $"* Copyright (C) [2025] [Ethan]\r\n * " +
@@ -35,32 +45,33 @@ namespace FontToLCD
             $"* 生成所有的Ascii 陣列\r\n" +
             $"* 生成多語言字型檔\r\n" +
             $"*/");
-
-            sb.AppendLine($"// Vertical Scan (SH1106/SSD1306) Font Data for a {cols}x{rows} character");
-            sb.AppendLine($"{dataType} {arrayName}[{arraySize}] = {{");
+#endif
+            sb.AppendLine($"// Vertical Scan (SH1106/SSD1306) Font Data for a {_cols}x{_rows} character");
+            //sb.AppendLine($"{dataType} {arrayName}[{arraySize}] = {{");
 
             sb.Append("  ");
-        for (int p = 0; p < numPages; p++)
-        {
-            for (int x = 0; x < cols; x++)
+            for (int p = 0; p < numPages; p++)
             {
-                int value = 0;
-                for (int bit = 0; bit < 8; bit++)
+                for (int x = 0; x < _cols; x++)
                 {
-                    int y = (p * 8) + bit;
-                    if (y < rows)
+                    int value = 0;
+                    for (int bit = 0; bit < 8; bit++)
                     {
-                        if (matrix[y, x] == 1)
-                        {
-                            value |= (1 << bit);
-                        }
+                        int y = (p * 8) + bit;
+                        if (y < _rows)
+                            {
+                            if (matrix[y, x] == 1)
+                                {
+                                    value |= (1 << bit);
+                                }
+                            }
                     }
+                    sb.Append($"0x{value:X2}, ");
                 }
-                sb.Append($"0x{value:X2}, ");
+                sb.AppendLine($" // Page {p}");
             }
-            sb.AppendLine($" // Page {p}");
-        }
-        sb.AppendLine("};");
+
+        //sb.AppendLine("};");
         return sb.ToString();
         // ▲▲▲ 貼到這裡結束 ▲▲▲
     }
